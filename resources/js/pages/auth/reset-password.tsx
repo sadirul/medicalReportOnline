@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { authIcons } from '@/lib/icon-map';
 
 interface ResetPasswordProps {
     token: string;
@@ -40,7 +41,17 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
             <Head title="Reset password" />
 
             <form onSubmit={submit}>
-                <div className="grid gap-6">
+                <div className="grid gap-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <div className="flex items-center gap-3 border-b border-slate-200/70 pb-4 dark:border-slate-700">
+                        <div className="rounded-lg bg-indigo-100 p-2 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <authIcons.resetPassword className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Create new password</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Set a fresh password for your account</p>
+                        </div>
+                    </div>
+
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
                         <Input

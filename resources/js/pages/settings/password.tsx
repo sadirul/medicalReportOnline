@@ -4,6 +4,7 @@ import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, useForm } from '@inertiajs/react';
+import { LockKeyhole } from 'lucide-react';
 import { FormEventHandler, useRef } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
@@ -56,7 +57,17 @@ export default function Password() {
                 <div className="space-y-6">
                     <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
 
-                    <form onSubmit={updatePassword} className="space-y-6">
+                    <form onSubmit={updatePassword} className="space-y-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex items-center gap-3 border-b border-slate-200/70 pb-4 dark:border-slate-700">
+                            <div className="rounded-lg bg-indigo-100 p-2 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                                <LockKeyhole className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Password security</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Use a strong password to keep your account safe</p>
+                            </div>
+                        </div>
+
                         <div className="grid gap-2">
                             <Label htmlFor="current_password">Current password</Label>
 

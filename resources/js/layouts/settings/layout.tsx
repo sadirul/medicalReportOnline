@@ -1,6 +1,7 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { settingsNavIcons } from '@/lib/icon-map';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
@@ -9,17 +10,17 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
         url: '/settings/profile',
-        icon: null,
+        icon: settingsNavIcons.profile,
     },
     {
         title: 'Password',
         url: '/settings/password',
-        icon: null,
+        icon: settingsNavIcons.password,
     },
     {
         title: 'Appearance',
         url: '/settings/appearance',
-        icon: null,
+        icon: settingsNavIcons.appearance,
     },
 ];
 
@@ -39,11 +40,12 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': currentPath === item.url,
+                                className={cn('w-full justify-start gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100', {
+                                    'bg-muted text-slate-900 dark:text-slate-50': currentPath === item.url,
                                 })}
                             >
-                                <Link href={item.url} prefetch>
+                                <Link href={item.url} prefetch className="group">
+                                    {item.icon && <item.icon className="h-4 w-4 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-300" />}
                                     {item.title}
                                 </Link>
                             </Button>

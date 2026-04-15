@@ -2,16 +2,16 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { appNavIcons, utilityNavIcons } from '@/lib/icon-map';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         url: '/dashboard',
-        icon: LayoutGrid,
+        icon: appNavIcons.dashboard,
     },
 ];
 
@@ -19,12 +19,12 @@ const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
         url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
+        icon: utilityNavIcons.repository,
     },
     {
         title: 'Documentation',
         url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
+        icon: utilityNavIcons.documentation,
     },
 ];
 

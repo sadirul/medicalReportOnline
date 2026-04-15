@@ -8,10 +8,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
+import { appNavIcons, utilityNavIcons } from '@/lib/icon-map';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -19,7 +20,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         url: '/dashboard',
-        icon: LayoutGrid,
+        icon: appNavIcons.dashboard,
     },
 ];
 
@@ -27,12 +28,12 @@ const rightNavItems: NavItem[] = [
     {
         title: 'Repository',
         url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
+        icon: utilityNavIcons.repository,
     },
     {
         title: 'Documentation',
         url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
+        icon: utilityNavIcons.documentation,
     },
 ];
 
@@ -46,6 +47,12 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
+    const profileImage = auth.user.logo
+        ? auth.user.logo.startsWith('http') || auth.user.logo.startsWith('/')
+            ? auth.user.logo
+            : `/storage/${auth.user.logo}`
+        : auth.user.avatar;
+
     return (
         <>
             <div className="border-sidebar-border/80 border-b">
@@ -67,7 +74,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
                                             {mainNavItems.map((item) => (
-                                                <Link key={item.title} href={item.url} className="flex items-center space-x-2 font-medium">
+                                                <Link
+                                                    key={item.title}
+                                                    href={item.url}
+                                                    className={cn(
+                                                        'flex items-center space-x-2 rounded-md px-2 py-1.5 font-medium transition-colors hover:bg-slate-100 hover:text-blue-700 dark:hover:bg-slate-800 dark:hover:text-blue-300',
+                                                        page.url === item.url && 'bg-slate-100 text-blue-700 dark:bg-slate-800 dark:text-blue-300',
+                                                    )}
+                                                >
                                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                                     <span>{item.title}</span>
                                                 </Link>
@@ -81,7 +95,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                     href={item.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center space-x-2 font-medium"
+                                                    className="flex items-center space-x-2 rounded-md px-2 py-1.5 font-medium transition-colors hover:bg-slate-100 hover:text-blue-700 dark:hover:bg-slate-800 dark:hover:text-blue-300"
                                                 >
                                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                                     <span>{item.title}</span>
@@ -156,7 +170,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="size-10 rounded-full p-1">
                                     <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarImage src={profileImage} alt={auth.user.name} />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>

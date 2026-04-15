@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { authIcons } from '@/lib/icon-map';
 import { SharedData } from '@/types';
 
 interface VerifyOtpForm {
@@ -39,7 +40,17 @@ export default function VerifyOtp({ mobile }: { mobile: string }) {
             {flash?.status && <div className="mb-4 text-center text-sm font-medium text-green-600">{flash.status}</div>}
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
-                <div className="grid gap-6">
+                <div className="grid gap-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <div className="flex items-center gap-3 border-b border-slate-200/70 pb-4 dark:border-slate-700">
+                        <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+                            <authIcons.verifyOtp className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Mobile verification</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Enter OTP to activate your account</p>
+                        </div>
+                    </div>
+
                     <div className="grid gap-2">
                         <Label htmlFor="otp">OTP</Label>
                         <Input

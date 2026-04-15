@@ -9,6 +9,20 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $user = $this->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $this->merge([
+            'full_name' => $this->input('full_name', $user->full_name),
+            'email' => $this->input('email', $user->email),
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -18,6 +32,7 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'full_name' => ['required', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
 
             'email' => [
                 'required',

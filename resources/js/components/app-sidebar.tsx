@@ -15,6 +15,26 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const reportsNavItems: NavItem[] = [
+    {
+        title: 'Reports',
+        url: '/reports',
+        icon: appNavIcons.allReports,
+        items: [
+            {
+                title: 'Create report',
+                url: '/reports/create-report',
+                icon: appNavIcons.createReport,
+            },
+            {
+                title: 'All report',
+                url: '/reports/all-report',
+                icon: appNavIcons.allReports,
+            },
+        ],
+    },
+];
+
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -44,7 +64,8 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} label="Platform" />
+                <NavMain items={reportsNavItems} label="Reports" />
             </SidebarContent>
 
             <SidebarFooter>

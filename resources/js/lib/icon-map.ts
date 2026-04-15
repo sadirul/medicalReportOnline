@@ -1,5 +1,7 @@
 import {
     BookOpen,
+    FilePlus2,
+    Files,
     FolderGit2,
     LayoutGrid,
     LockKeyhole,
@@ -12,6 +14,8 @@ import {
 
 export const appNavIcons = {
     dashboard: LayoutGrid,
+    createReport: FilePlus2,
+    allReports: Files,
     profile: UserRound,
     security: ShieldCheck,
 } as const;

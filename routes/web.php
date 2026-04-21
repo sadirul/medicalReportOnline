@@ -3,6 +3,7 @@
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,8 +15,17 @@ Route::get('reports/{report:uuid}/pdf', [ReportPdfController::class, 'publicShow
 Route::get('reports/public/{report:uuid}/bill', [ReportPdfController::class, 'publicBill'])->name('reports.public.bill');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+    Route::get('dashboard', function (Request $request) {
+        $user = $request->user();
+
+        return Inertia::render('dashboard', [
+            'stats' => [
+                'departments' => $user->departments()->count(),
+                'total_reports' => $user->reports()->count(),
+                'released_reports' => $user->reports()->where('publication_status', 'released')->count(),
+                'unreleased_reports' => $user->reports()->where('publication_status', 'unpublished')->count(),
+            ],
+        ]);
     })->name('dashboard');
 
     Route::get('departments/create-department', [DepartmentController::class, 'create'])->name('departments.create');

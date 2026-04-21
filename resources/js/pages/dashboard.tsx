@@ -1,8 +1,7 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
-import { Activity, FileText, UserRoundCheck, Wallet } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { Building2, FileText, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,22 +10,44 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({
+    stats,
+}: {
+    stats: {
+        departments: number;
+        total_reports: number;
+        released_reports: number;
+        unreleased_reports: number;
+    };
+}) {
     const cards = [
         {
-            title: 'Patient Reports',
-            description: 'Recent diagnostic reports',
+            title: 'Departments',
+            value: stats.departments,
+            href: '/departments/all-department',
+            icon: Building2,
+            iconClass: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300',
+        },
+        {
+            title: 'Total Reports',
+            value: stats.total_reports,
+            href: '/reports/all-report',
             icon: FileText,
+            iconClass: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200',
         },
         {
-            title: 'Active Doctors',
-            description: 'Verified clinicians online',
-            icon: UserRoundCheck,
+            title: 'Released',
+            value: stats.released_reports,
+            href: '/reports/all-report?status=released',
+            icon: ShieldCheck,
+            iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
         },
         {
-            title: 'Payments',
-            description: 'Collected and pending fees',
-            icon: Wallet,
+            title: 'Unreleased',
+            value: stats.unreleased_reports,
+            href: '/reports/all-report?status=unpublished',
+            icon: ShieldAlert,
+            iconClass: 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300',
         },
     ];
 
@@ -34,36 +55,23 @@ export default function Dashboard() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl bg-slate-50/60 p-4 dark:bg-slate-950/50">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+                <h2 className="w-full text-left text-lg font-semibold text-slate-800 dark:text-slate-100">Dashboard Overview</h2>
+                <div className="grid auto-rows-min gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {cards.map((card) => (
-                        <div
+                        <Link
                             key={card.title}
-                            className="border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border bg-white shadow-sm dark:bg-slate-900"
+                            href={card.href}
+                            className="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-slate-900"
                         >
-                            <div className="relative z-10 flex items-center gap-3 border-b border-slate-200/70 px-4 py-3 dark:border-slate-700/60">
-                                <div className="rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                            <div className="flex items-center justify-between">
+                                <div className={`rounded-lg p-2 ${card.iconClass}`}>
                                     <card.icon className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{card.title}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{card.description}</p>
-                                </div>
+                                <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{card.value}</p>
                             </div>
-                            <PlaceholderPattern className="absolute inset-0 top-[56px] size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                        </div>
+                            <p className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-300">{card.title}</p>
+                        </Link>
                     ))}
-                </div>
-                <div className="border-sidebar-border/70 dark:border-sidebar-border relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border bg-white shadow-sm md:min-h-min dark:bg-slate-900">
-                    <div className="relative z-10 flex items-center gap-3 border-b border-slate-200/70 px-4 py-3 dark:border-slate-700/60">
-                        <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
-                            <Activity className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Activity Overview</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Trends and updates from your clinic workflow</p>
-                        </div>
-                    </div>
-                    <PlaceholderPattern className="absolute inset-0 top-[56px] size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                 </div>
             </div>
         </AppLayout>

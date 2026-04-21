@@ -12,6 +12,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard({
     stats,
+    monthlyReports,
+    currentYear,
 }: {
     stats: {
         departments: number;
@@ -19,7 +21,14 @@ export default function Dashboard({
         released_reports: number;
         unreleased_reports: number;
     };
+    monthlyReports: Array<{
+        month: string;
+        count: number;
+    }>;
+    currentYear: number;
 }) {
+    const maxCount = Math.max(...monthlyReports.map((item) => item.count), 1);
+
     const cards = [
         {
             title: 'Departments',
@@ -72,6 +81,34 @@ export default function Dashboard({
                             <p className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-300">{card.title}</p>
                         </Link>
                     ))}
+                </div>
+
+                <div className="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border bg-white p-4 shadow-sm dark:bg-slate-900">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Monthly Reports Count</h3>
+                        <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                            {currentYear}
+                        </span>
+                    </div>
+
+                    <div className="grid h-64 grid-cols-12 items-end gap-2">
+                        {monthlyReports.map((item) => {
+                            const heightPercent = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                            const barHeight = Math.max(heightPercent, item.count > 0 ? 10 : 3);
+
+                            return (
+                                <div key={item.month} className="flex h-full flex-col items-center justify-end">
+                                    <span className="mb-1 text-[11px] text-slate-500 dark:text-slate-400">{item.count}</span>
+                                    <div
+                                        className="w-full rounded-t-md bg-blue-500/85 dark:bg-blue-400/80"
+                                        style={{ height: `${barHeight}%` }}
+                                        title={`${item.month}: ${item.count} reports`}
+                                    />
+                                    <span className="mt-2 text-[11px] text-slate-600 dark:text-slate-300">{item.month}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </AppLayout>

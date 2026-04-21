@@ -3,7 +3,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LockKeyhole, LogOut, UserRound } from 'lucide-react';
+import { LogOut, Settings, UserRound } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -29,8 +29,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link className="block w-full" href={route('password.edit')} as="button" prefetch onClick={cleanup}>
-                        <LockKeyhole className="mr-2" />
-                        Security
+                        <Settings className="mr-2" />
+                        Setting
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>

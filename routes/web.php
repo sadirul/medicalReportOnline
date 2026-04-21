@@ -3,6 +3,7 @@
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,6 +18,26 @@ Route::get('reports/public/{report:uuid}/bill', [ReportPdfController::class, 'pu
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function (Request $request) {
         $user = $request->user();
+        $currentYear = now()->year;
+        $monthlyCounts = array_fill(1, 12, 0);
+
+        $user->reports()
+            ->select(['report_date', 'created_at'])
+            ->get()
+            ->each(function ($report) use (&$monthlyCounts, $currentYear): void {
+                $date = $report->report_date ?? $report->created_at;
+
+                if ($date && $date->year === $currentYear) {
+                    $monthlyCounts[$date->month]++;
+                }
+            });
+
+        $monthlyReports = collect(range(1, 12))
+            ->map(fn (int $month): array => [
+                'month' => Carbon::create()->month($month)->format('M'),
+                'count' => $monthlyCounts[$month],
+            ])
+            ->values();
 
         return Inertia::render('dashboard', [
             'stats' => [
@@ -25,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
                 'released_reports' => $user->reports()->where('publication_status', 'released')->count(),
                 'unreleased_reports' => $user->reports()->where('publication_status', 'unpublished')->count(),
             ],
+            'monthlyReports' => $monthlyReports,
+            'currentYear' => $currentYear,
         ]);
     })->name('dashboard');
 

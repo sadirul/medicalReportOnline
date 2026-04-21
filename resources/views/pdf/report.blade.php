@@ -132,11 +132,15 @@
 </head>
 <body>
 <div class="header">
-    <!-- Intentionally blank: reserved top space only -->
+    @if(!empty($headerImage))
+        <img src="{{ $headerImage }}" alt="Report Header" class="banner">
+    @endif
 </div>
 
 <div class="footer">
-    <!-- Intentionally blank: reserved bottom space only -->
+    @if(!empty($footerImage))
+        <img src="{{ $footerImage }}" alt="Report Footer" class="banner">
+    @endif
 </div>
 
 @foreach($groupedItems as $group)

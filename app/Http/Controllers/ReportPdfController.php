@@ -67,6 +67,8 @@ class ReportPdfController extends Controller
             'report' => $report,
             'clinic' => $clinic,
             'groupedItems' => $groupedItems,
+            'headerImage' => $this->toDataUri($clinic->report_header_image),
+            'footerImage' => $this->toDataUri($clinic->report_footer_image),
             'logoImage' => $this->toDataUri($clinic->logo),
         ])->setPaper('a4', 'portrait');
 

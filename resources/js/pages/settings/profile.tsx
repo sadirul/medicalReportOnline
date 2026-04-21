@@ -23,6 +23,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [headerPreview, setHeaderPreview] = useState<string | null>(null);
+    const [footerPreview, setFooterPreview] = useState<string | null>(null);
     const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
 
     const existingLogo = auth.user.logo
@@ -30,6 +32,8 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
             ? auth.user.logo
             : `/storage/${auth.user.logo}`
         : null;
+    const existingHeaderImage = auth.user.report_header_image ? `/storage/${auth.user.report_header_image}` : null;
+    const existingFooterImage = auth.user.report_footer_image ? `/storage/${auth.user.report_footer_image}` : null;
     const existingSignatureImage = auth.user.signature_image ? `/storage/${auth.user.signature_image}` : null;
 
     const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
@@ -39,6 +43,8 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
         email: auth.user.email,
         address: auth.user.address ?? '',
         logo: null as File | null,
+        report_header_image: null as File | null,
+        report_footer_image: null as File | null,
         signature_image: null as File | null,
         _method: 'patch',
     });
@@ -49,11 +55,19 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                 URL.revokeObjectURL(logoPreview);
             }
 
+            if (headerPreview) {
+                URL.revokeObjectURL(headerPreview);
+            }
+
+            if (footerPreview) {
+                URL.revokeObjectURL(footerPreview);
+            }
+
             if (signaturePreview) {
                 URL.revokeObjectURL(signaturePreview);
             }
         };
-    }, [logoPreview, signaturePreview]);
+    }, [footerPreview, headerPreview, logoPreview, signaturePreview]);
 
     const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0] ?? null;
@@ -64,6 +78,28 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
         }
 
         setLogoPreview(file ? URL.createObjectURL(file) : null);
+    };
+
+    const handleHeaderImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+        setData('report_header_image', file);
+
+        if (headerPreview) {
+            URL.revokeObjectURL(headerPreview);
+        }
+
+        setHeaderPreview(file ? URL.createObjectURL(file) : null);
+    };
+
+    const handleFooterImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+        setData('report_footer_image', file);
+
+        if (footerPreview) {
+            URL.revokeObjectURL(footerPreview);
+        }
+
+        setFooterPreview(file ? URL.createObjectURL(file) : null);
     };
 
     const handleSignatureImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -230,6 +266,58 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             </div>
 
                             <InputError className="mt-2" message={errors.signature_image} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="report_header_image">Report header image</Label>
+
+                            <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                                <div className="mb-3 h-20 w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                                    {headerPreview || existingHeaderImage ? (
+                                        <img src={headerPreview ?? existingHeaderImage ?? ''} alt="Report header preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-slate-400">
+                                            <ImagePlus className="h-5 w-5" />
+                                        </div>
+                                    )}
+                                </div>
+                                <Input
+                                    id="report_header_image"
+                                    type="file"
+                                    accept=".png,.jpg,.jpeg,.webp"
+                                    onChange={handleHeaderImageChange}
+                                    className="cursor-pointer"
+                                />
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">PNG, JPG or WEBP up to 4MB.</p>
+                            </div>
+
+                            <InputError className="mt-2" message={errors.report_header_image} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="report_footer_image">Report footer image</Label>
+
+                            <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                                <div className="mb-3 h-20 w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                                    {footerPreview || existingFooterImage ? (
+                                        <img src={footerPreview ?? existingFooterImage ?? ''} alt="Report footer preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-slate-400">
+                                            <ImagePlus className="h-5 w-5" />
+                                        </div>
+                                    )}
+                                </div>
+                                <Input
+                                    id="report_footer_image"
+                                    type="file"
+                                    accept=".png,.jpg,.jpeg,.webp"
+                                    onChange={handleFooterImageChange}
+                                    className="cursor-pointer"
+                                />
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">PNG, JPG or WEBP up to 4MB.</p>
+                            </div>
+
+                            <InputError className="mt-2" message={errors.report_footer_image} />
                         </div>
 
                         {mustVerifyEmail && auth.user.email_verified_at === null && (

@@ -40,6 +40,8 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'report_header_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'report_footer_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
 
             'email' => [
                 'required',

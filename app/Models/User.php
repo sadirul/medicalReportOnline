@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -27,6 +28,8 @@ class User extends Authenticatable
         'password',
         'address',
         'logo',
+        'report_header_image',
+        'report_footer_image',
         'alternate_mobile',
         'is_verified',
         'otp_hash',
@@ -80,5 +83,25 @@ class User extends Authenticatable
     public function getNameAttribute(): ?string
     {
         return $this->full_name;
+    }
+
+    public function patients(): HasMany
+    {
+        return $this->hasMany(Patient::class);
+    }
+
+    public function testMasters(): HasMany
+    {
+        return $this->hasMany(TestMaster::class);
+    }
+
+    public function departments(): HasMany
+    {
+        return $this->hasMany(Department::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
     }
 }

@@ -97,9 +97,9 @@ export default function ShowDepartment({ department }: { department: DepartmentD
                     </form>
 
                     <form onSubmit={submitInvestigation} className="space-y-4 rounded-xl border bg-white p-5 shadow-sm dark:bg-slate-900">
-                        <h2 className="text-sm font-semibold">{editingInvestigation ? 'Edit investigation' : 'Add investigation'}</h2>
+                        <h2 className="text-sm font-semibold">{editingInvestigation ? 'Edit test' : 'Add test'}</h2>
                         <div className="grid gap-2">
-                            <Label htmlFor="investigation_name">Investigation name</Label>
+                            <Label htmlFor="investigation_name">Test name</Label>
                             <Input
                                 id="investigation_name"
                                 value={investigationForm.data.name}
@@ -140,7 +140,7 @@ export default function ShowDepartment({ department }: { department: DepartmentD
                         </div>
                         <div className="flex gap-2">
                             <Button disabled={investigationForm.processing}>
-                                {editingInvestigation ? 'Update investigation' : 'Save investigation'}
+                                {editingInvestigation ? 'Update test' : 'Save test'}
                             </Button>
                             {editingInvestigation && (
                                 <Button
@@ -159,8 +159,8 @@ export default function ShowDepartment({ department }: { department: DepartmentD
                 </div>
 
                 <div className="space-y-3 rounded-xl border bg-white p-5 shadow-sm dark:bg-slate-900">
-                    <h2 className="text-sm font-semibold">Investigations</h2>
-                    {department.investigations.length === 0 && <p className="text-sm text-slate-500">No investigations added yet.</p>}
+                    <h2 className="text-sm font-semibold">Tests</h2>
+                    {department.investigations.length === 0 && <p className="text-sm text-slate-500">No tests added yet.</p>}
                     {department.investigations.map((investigation) => (
                         <div key={investigation.id} className="flex items-center justify-between rounded-md border p-3">
                             <div>

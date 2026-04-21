@@ -17,6 +17,7 @@ type ReportRow = {
     id: number;
     uuid?: string | null;
     memo_number?: string | null;
+    incomplete_results_count?: number;
     publication_status?: 'unpublished' | 'released' | string;
     billing_date: string;
     collection_date: string;
@@ -184,18 +185,29 @@ export default function AllReport({
                                     </td>
                                     <td className="py-2">
                                         <div className="flex gap-2">
-                                            {report.publication_status !== 'released' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
-                                                    asChild
-                                                >
-                                                    <Link href={route('reports.release', report.id)} method="post" as="button">
+                                            {report.publication_status !== 'released' &&
+                                                ((report.incomplete_results_count ?? 0) === 0 ? (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                                                        asChild
+                                                    >
+                                                        <Link href={route('reports.release', report.id)} method="post" as="button">
+                                                            Release
+                                                        </Link>
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        disabled
+                                                        title="Please put all result value to release"
+                                                        className="cursor-not-allowed bg-slate-400 text-white hover:bg-slate-400 dark:bg-slate-600 dark:hover:bg-slate-600"
+                                                    >
                                                         Release
-                                                    </Link>
-                                                </Button>
-                                            )}
+                                                    </Button>
+                                                ))}
                                             <Button size="sm" variant="outline" asChild>
                                                 <Link href={route('reports.edit', report.id)}>Edit</Link>
                                             </Button>

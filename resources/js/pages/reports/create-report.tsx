@@ -152,6 +152,14 @@ export default function CreateReport({
     };
 
     const onDepartmentChange = (rowIndex: number, departmentId: string) => {
+        const isDepartmentUsedInAnotherRow = data.department_rows.some(
+            (row, index) => index !== rowIndex && row.department_id === departmentId && departmentId !== '',
+        );
+
+        if (isDepartmentUsedInAnotherRow) {
+            return;
+        }
+
         const rows = [...data.department_rows];
         rows[rowIndex] = {
             ...rows[rowIndex],
@@ -314,7 +322,7 @@ export default function CreateReport({
                     <div className="flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
                             <Building2 className="h-4 w-4" />
-                            Departments with investigations
+                            Departments with tests
                         </h3>
                         <Button
                             type="button"
@@ -352,7 +360,16 @@ export default function CreateReport({
                                     >
                                         <option value="">Select department</option>
                                         {departments.map((department) => (
-                                            <option key={department.id} value={department.id}>
+                                            <option
+                                                key={department.id}
+                                                value={department.id}
+                                                disabled={
+                                                    data.department_rows.some(
+                                                        (otherRow, index) =>
+                                                            index !== rowIndex && otherRow.department_id === String(department.id),
+                                                    )
+                                                }
+                                            >
                                                 {department.name}
                                             </option>
                                         ))}
@@ -374,11 +391,12 @@ export default function CreateReport({
                                     <select
                                         value={investigationRow.investigation_id}
                                         onChange={(e) => onInvestigationChange(rowIndex, investigationIndex, e.target.value)}
+                                        disabled={!row.department_id}
                                         className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
                                     >
-                                        <option value="">Select investigation</option>
+                                        <option value="">{row.department_id ? 'Select test' : 'Select department first'}</option>
                                         {investigations
-                                            .filter((investigation) => !row.department_id || String(investigation.department_id) === row.department_id)
+                                            .filter((investigation) => row.department_id && String(investigation.department_id) === row.department_id)
                                             .map((investigation) => (
                                                 <option key={investigation.id} value={investigation.id}>
                                                     {investigation.name}
@@ -386,7 +404,7 @@ export default function CreateReport({
                                             ))}
                                     </select>
                                     <Input
-                                        placeholder="Investigation name"
+                                        placeholder="Test name"
                                         value={investigationRow.parameter_name}
                                         onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'parameter_name', e.target.value)}
                                     />
@@ -426,7 +444,7 @@ export default function CreateReport({
                                     className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                                 >
                                     <FlaskConical className="mr-2 h-4 w-4" />
-                                    Add investigation row
+                                    Add test row
                                 </Button>
                             </div>
                         </div>

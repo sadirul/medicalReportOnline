@@ -56,6 +56,7 @@ export default function ShowReport({ report }: { report: Report }) {
         acc[departmentName].push(item);
         return acc;
     }, {});
+    const isReadyToRelease = report.items.length > 0 && report.items.every((item) => (item.value ?? '').trim() !== '');
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -65,15 +66,26 @@ export default function ShowReport({ report }: { report: Report }) {
                     <h1 className="text-lg font-semibold">Report #{report.id}</h1>
                     <div className="flex gap-2">
                         {report.publication_status !== 'released' && (
-                            <Button
-                                variant="secondary"
-                                className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
-                                asChild
-                            >
-                                <Link href={route('reports.release', report.id)} method="post" as="button">
+                            isReadyToRelease ? (
+                                <Button
+                                    variant="secondary"
+                                    className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                                    asChild
+                                >
+                                    <Link href={route('reports.release', report.id)} method="post" as="button">
+                                        Release
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="secondary"
+                                    disabled
+                                    title="Please put all result value to release"
+                                    className="cursor-not-allowed bg-slate-400 text-white hover:bg-slate-400 dark:bg-slate-600 dark:hover:bg-slate-600"
+                                >
                                     Release
-                                </Link>
-                            </Button>
+                                </Button>
+                            )
                         )}
                         <Button variant="outline" asChild>
                             <Link href={route('reports.edit', report.id)}>Edit report</Link>

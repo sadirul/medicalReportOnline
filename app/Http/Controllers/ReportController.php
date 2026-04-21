@@ -24,6 +24,14 @@ class ReportController extends Controller
 
         $reportsQuery = $request->user()
             ->reports()
+            ->withCount([
+                'items as incomplete_results_count' => function ($query): void {
+                    $query->where(function ($inner): void {
+                        $inner->whereNull('value')
+                            ->orWhere('value', '');
+                    });
+                },
+            ])
             ->latest();
 
         if ($patientName !== '') {
@@ -191,6 +199,17 @@ class ReportController extends Controller
     public function release(Request $request, Report $report): RedirectResponse
     {
         abort_unless($report->user_id === $request->user()->id, 403);
+
+        $hasEmptyResultValue = $report->items()
+            ->where(function ($query): void {
+                $query->whereNull('value')
+                    ->orWhere('value', '');
+            })
+            ->exists();
+
+        if ($hasEmptyResultValue) {
+            return back()->with('status', 'Fill all result values before releasing this report.');
+        }
 
         if ($report->publication_status !== 'released') {
             $report->update([

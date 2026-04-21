@@ -26,6 +26,7 @@ class Report extends Model
         'billing_date',
         'collection_date',
         'report_date',
+        'include_header_footer',
         'department',
         'sample_note',
         'equipment_note',
@@ -47,6 +48,7 @@ class Report extends Model
             'billing_date' => 'datetime',
             'collection_date' => 'datetime',
             'report_date' => 'datetime',
+            'include_header_footer' => 'boolean',
             'released_at' => 'datetime',
         ];
     }

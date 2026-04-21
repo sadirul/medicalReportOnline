@@ -57,14 +57,43 @@
             padding: 0 5px;
         }
 
-        .meta-table {
+        .patient-meta {
             width: 100%;
-            margin: 12px 0;
-            font-size: 11px;
+            margin: 8px 0 12px;
+            font-size: 12px;
+            line-height: 1.25;
         }
 
-        .meta-table td {
-            padding: 4px 6px;
+        .meta-col {
+            display: inline-block;
+            width: 49%;
+            vertical-align: top;
+        }
+
+        .meta-row {
+            margin: 2px 0;
+            white-space: nowrap;
+        }
+
+        .meta-label {
+            display: inline-block;
+            width: 130px;
+            font-weight: 700;
+        }
+
+        .meta-col.right .meta-label {
+            width: 150px;
+        }
+
+        .meta-colon {
+            display: inline-block;
+            width: 14px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .meta-value {
+            font-weight: 700;
         }
 
         .section-title {
@@ -152,24 +181,52 @@
 <div class="content">
 @foreach($groupedItems as $group)
     <div class="department-page">
-        <table class="meta-table">
-            <tr>
-                <td><strong>Patient Name:</strong> {{ $report->patient_name }}</td>
-                <td><strong>Memo Number:</strong> {{ $report->memo_number ?: '-' }}</td>
-            </tr>
-            <tr>
-                <td><strong>Age/Sex:</strong> {{ $report->patient_age }} Y / {{ $report->patient_sex }}</td>
-                <td><strong>Billing Date:</strong> {{ $report->billing_date->timezone('Asia/Kolkata')->format('d-m-Y h:i A') }}</td>
-            </tr>
-            <tr>
-                <td><strong>Address:</strong> {{ $report->patient_address ?: '-' }}</td>
-                <td><strong>Collection Date:</strong> {{ $report->collection_date->timezone('Asia/Kolkata')->format('d-m-Y h:i A') }}</td>
-            </tr>
-            <tr>
-                <td><strong>Referred By:</strong> {{ $report->patient_referred_by ?: '-' }}</td>
-                <td><strong>Report Date:</strong> {{ $report->report_date->timezone('Asia/Kolkata')->format('d-m-Y h:i A') }}</td>
-            </tr>
-        </table>
+        <div class="patient-meta">
+            <div class="meta-col">
+                <div class="meta-row">
+                    <span class="meta-label">Patient Name</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ strtoupper($report->patient_name ?: '-') }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Age/Sex</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ $report->patient_age }} Y / {{ ucfirst(strtolower($report->patient_sex ?: '-')) }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Address</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ strtoupper($report->patient_address ?: '-') }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Referred By</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ strtoupper($report->patient_referred_by ?: '-') }}</span>
+                </div>
+            </div>
+            <div class="meta-col right">
+                <div class="meta-row">
+                    <span class="meta-label">Memo No</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ $report->memo_number ?: '-' }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Billing Date</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ $report->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Collection Date</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ $report->collection_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Report Date</span>
+                    <span class="meta-colon">:</span>
+                    <span class="meta-value">{{ $report->report_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
+                </div>
+            </div>
+        </div>
 
         <div class="section-title">DEPARTMENT OF {{ strtoupper($group['department']) }}</div>
 

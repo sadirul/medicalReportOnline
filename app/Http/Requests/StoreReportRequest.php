@@ -33,6 +33,7 @@ class StoreReportRequest extends FormRequest
             'billing_date' => ['required', 'date'],
             'collection_date' => ['required', 'date'],
             'report_date' => ['required', 'date'],
+            'include_header_footer' => ['nullable', 'boolean'],
             'sample_note' => ['nullable', 'string', 'max:255'],
             'equipment_note' => ['nullable', 'string', 'max:255'],
             'interpretation_note' => ['nullable', 'string', 'max:5000'],

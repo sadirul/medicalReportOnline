@@ -34,6 +34,7 @@ type EditableReport = {
     billing_date: string;
     collection_date: string;
     report_date: string;
+    include_header_footer?: boolean;
     sample_note?: string | null;
     equipment_note?: string | null;
     interpretation_note?: string | null;
@@ -135,6 +136,7 @@ export default function CreateReport({
         billing_date: report ? report.billing_date.slice(0, 16) : dateForInput(),
         collection_date: report ? report.collection_date.slice(0, 16) : dateForInput(),
         report_date: report ? report.report_date.slice(0, 16) : dateForInput(),
+        include_header_footer: report?.include_header_footer ?? false,
         sample_note: report?.sample_note ?? '',
         equipment_note: report?.equipment_note ?? '',
         interpretation_note: report?.interpretation_note ?? '',
@@ -230,6 +232,7 @@ export default function CreateReport({
             billing_date: data.billing_date,
             collection_date: data.collection_date,
             report_date: data.report_date,
+            include_header_footer: data.include_header_footer,
             sample_note: data.sample_note,
             equipment_note: data.equipment_note,
             interpretation_note: data.interpretation_note,
@@ -444,6 +447,21 @@ export default function CreateReport({
                         <Label htmlFor="interpretation_note">Interpretation note</Label>
                         <Input id="interpretation_note" value={data.interpretation_note} onChange={(e) => setData('interpretation_note', e.target.value)} placeholder="Please correlate with clinical conditions." />
                     </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                        <input
+                            type="checkbox"
+                            checked={data.include_header_footer}
+                            onChange={(e) => setData('include_header_footer', e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        Header/Footer
+                    </label>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        If checked, uploaded profile header and footer images will be shown in report PDF.
+                    </p>
                 </div>
 
                 <Button disabled={processing}>{isEdit ? 'Update report' : 'Create report'}</Button>

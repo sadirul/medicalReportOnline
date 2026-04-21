@@ -15,7 +15,9 @@ class ReportPdfController extends Controller
     {
         abort_unless($report->user_id === $request->user()->id, 403);
         if ($report->publication_status !== 'released') {
-            return response('Report yet not Released', 403);
+            return response()->view('reports.not-released', [
+                'message' => 'Report yet not Released',
+            ], 403);
         }
 
         return $this->renderInlinePdf($report);
@@ -24,7 +26,9 @@ class ReportPdfController extends Controller
     public function publicShow(Report $report): Response
     {
         if ($report->publication_status !== 'released') {
-            return response('Report yet not Released', 403);
+            return response()->view('reports.not-released', [
+                'message' => 'Report yet not Released',
+            ], 403);
         }
 
         return $this->renderInlinePdf($report);

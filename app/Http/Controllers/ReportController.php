@@ -18,6 +18,9 @@ class ReportController extends Controller
     {
         $patientName = trim($request->string('patient_name')->toString());
         $patientAddress = trim($request->string('patient_address')->toString());
+        $fromDate = trim($request->string('from_date')->toString());
+        $toDate = trim($request->string('to_date')->toString());
+        $status = trim($request->string('status')->toString());
 
         $reportsQuery = $request->user()
             ->reports()
@@ -29,6 +32,20 @@ class ReportController extends Controller
 
         if ($patientAddress !== '') {
             $reportsQuery->where('patient_address', 'like', '%'.$patientAddress.'%');
+        }
+
+        if (in_array($status, ['released', 'unpublished'], true)) {
+            $reportsQuery->where('publication_status', $status);
+        } else {
+            $status = '';
+        }
+
+        if ($fromDate !== '') {
+            $reportsQuery->whereDate('report_date', '>=', $fromDate);
+        }
+
+        if ($toDate !== '') {
+            $reportsQuery->whereDate('report_date', '<=', $toDate);
         }
 
         $reports = $reportsQuery->get();
@@ -45,6 +62,9 @@ class ReportController extends Controller
             'filters' => [
                 'patient_name' => $patientName,
                 'patient_address' => $patientAddress,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'status' => $status,
             ],
         ]);
     }

@@ -7,12 +7,12 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             color: #1f2937;
-            font-size: 12px;
-            margin: 22px;
+            font-size: 11px;
+            margin: 8px;
         }
 
         .title {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 700;
             color: #0f172a;
         }
@@ -20,33 +20,14 @@
         .muted {
             color: #6b7280;
             font-size: 11px;
-            line-height: 1.4;
-        }
-
-        .label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #374151;
-            margin: 12px 0 6px;
-        }
-
-        .bottom {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 14px;
-        }
-
-        .bottom td {
-            vertical-align: top;
-            width: 50%;
         }
 
         .qr-box {
             border: 1px solid #ccc;
             box-sizing: border-box;
-            padding: 4px;
-            width: 120px;
-            height: 120px;
+            padding: 2px;
+            width: 96px;
+            height: 96px;
             overflow: hidden;
         }
 
@@ -64,7 +45,7 @@
 
         .signature-box {
             text-align: right;
-            padding-left: 16px;
+            padding-left: 6px;
         }
 
         .signature-image {
@@ -72,23 +53,23 @@
             max-height: 70px;
             object-fit: contain;
             display: inline-block;
-            margin-top: 40px;
+            margin-top: 6px;
         }
 
         .signature-line {
-            margin-top: 30px;
-            border-top: 1px solid #d1d5db;
+            margin-top: 4px;
+            border-top: 1px solid #9ca3af;
+            min-width: 160px;
             display: inline-block;
-            min-width: 180px;
-            /* padding-top: 4px; */
             font-size: 10px;
             color: #6b7280;
             text-align: center;
+            padding-top: 2px;
         }
     </style>
 </head>
 <body>
-<table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 14px;">
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 4px;">
     <tr>
         <td valign="top">
             <div class="title">Invoice</div>
@@ -104,8 +85,8 @@
     </tr>
 </table>
 
-<div class="label">Patient Details</div>
-<table width="100%" border="1" cellpadding="7" cellspacing="0" style="margin-bottom: 10px;">
+<div><strong>Patient Details</strong></div>
+<table width="100%" border="1" cellpadding="2" cellspacing="0" style="margin-bottom: 4px;">
     <tr>
         <td><strong>Name:</strong> {{ $report->patient_name }}</td>
         <td><strong>Age/Sex:</strong> {{ $report->patient_age }} / {{ $report->patient_sex }}</td>
@@ -116,8 +97,8 @@
     </tr>
 </table>
 
-<div class="label">Invoice Items</div>
-<table width="100%" border="1" cellpadding="8" cellspacing="0">
+<div><strong>Invoice Items</strong></div>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
     <thead>
     <tr>
         <th style="width: 40px;">#</th>
@@ -142,16 +123,16 @@
     </tbody>
 </table>
 
-<table width="100%" border="1" cellpadding="8" cellspacing="0" style="margin-top: 8px;">
+<table width="100%" border="1" cellpadding="2" cellspacing="0" style="margin-top: 4px;">
     <tr>
         <td align="right"><strong>Grand Total</strong></td>
         <td align="right" style="width: 160px;"><strong>{{ number_format((float) $subTotal, 2) }}</strong></td>
     </tr>
 </table>
 
-<table class="bottom">
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top: 40px;">
     <tr>
-        <td>
+        <td valign="top" style="width: 50%;">
             <div class="qr-box">
                 @if(!empty($qrImage))
                     <img src="{{ $qrImage }}" alt="Invoice QR" class="qr-image">
@@ -159,12 +140,12 @@
             </div>
             <div class="qr-caption">Scan to open report PDF</div>
         </td>
-        <td>
+        <td valign="top" style="width: 50%;">
             <div class="signature-box">
                 @if(!empty($signatureImage))
                     <img src="{{ $signatureImage }}" alt="Authorized signature" class="signature-image">
+                    <div class="signature-line">Authorized Signature</div>
                 @endif
-                <div class="signature-line">Authorized Signature</div>
             </div>
         </td>
     </tr>

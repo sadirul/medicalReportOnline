@@ -116,7 +116,7 @@ export default function ShowReport({ report }: { report: Report }) {
                         {report.publication_status === 'released' ? (
                             <span className="rounded bg-emerald-100 px-2 py-1 text-xs text-emerald-700">Released</span>
                         ) : (
-                            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-700">Unpublished</span>
+                            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-700">Unreleased</span>
                         )}
                     </p>
                     <p>

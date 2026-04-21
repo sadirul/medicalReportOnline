@@ -30,11 +30,14 @@ export default function AllReport({
     filters,
 }: {
     reports: ReportRow[];
-    filters: { patient_name: string; patient_address: string };
+    filters: { patient_name: string; patient_address: string; from_date: string; to_date: string; status: string };
 }) {
     const filterForm = useForm({
         patient_name: filters.patient_name || '',
         patient_address: filters.patient_address || '',
+        from_date: filters.from_date || '',
+        to_date: filters.to_date || '',
+        status: filters.status || '',
     });
 
     const applyFilters: FormEventHandler = (event) => {
@@ -56,8 +59,8 @@ export default function AllReport({
                         <Link href={route('reports.create')}>Create report</Link>
                     </Button>
                 </div>
-                <form onSubmit={applyFilters} className="grid gap-3 md:grid-cols-3">
-                    <div className="grid gap-1">
+                <form onSubmit={applyFilters} className="grid gap-3 md:grid-cols-14">
+                    <div className="grid gap-1 md:col-span-3">
                         <label htmlFor="patient_name_filter" className="text-xs font-medium text-slate-600">
                             Patient name
                         </label>
@@ -69,7 +72,7 @@ export default function AllReport({
                             placeholder="Search by name"
                         />
                     </div>
-                    <div className="grid gap-1">
+                    <div className="grid gap-1 md:col-span-3">
                         <label htmlFor="patient_address_filter" className="text-xs font-medium text-slate-600">
                             Patient address
                         </label>
@@ -81,7 +84,46 @@ export default function AllReport({
                             placeholder="Search by address"
                         />
                     </div>
-                    <div className="flex items-end gap-2">
+                    <div className="grid gap-1 md:col-span-2">
+                        <label htmlFor="from_date_filter" className="text-xs font-medium text-slate-600">
+                            From date
+                        </label>
+                        <input
+                            id="from_date_filter"
+                            type="date"
+                            value={filterForm.data.from_date}
+                            onChange={(event) => filterForm.setData('from_date', event.target.value)}
+                            className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
+                        />
+                    </div>
+                    <div className="grid gap-1 md:col-span-2">
+                        <label htmlFor="to_date_filter" className="text-xs font-medium text-slate-600">
+                            To date
+                        </label>
+                        <input
+                            id="to_date_filter"
+                            type="date"
+                            value={filterForm.data.to_date}
+                            onChange={(event) => filterForm.setData('to_date', event.target.value)}
+                            className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
+                        />
+                    </div>
+                    <div className="grid gap-1 md:col-span-2">
+                        <label htmlFor="status_filter" className="text-xs font-medium text-slate-600">
+                            Status
+                        </label>
+                        <select
+                            id="status_filter"
+                            value={filterForm.data.status}
+                            onChange={(event) => filterForm.setData('status', event.target.value)}
+                            className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
+                        >
+                            <option value="">All status</option>
+                            <option value="released">Released</option>
+                            <option value="unpublished">Unreleased</option>
+                        </select>
+                    </div>
+                    <div className="flex items-end gap-2 md:col-span-2 md:justify-start">
                         <Button type="submit" variant="outline">
                             Apply
                         </Button>
@@ -92,6 +134,9 @@ export default function AllReport({
                                 filterForm.setData({
                                     patient_name: '',
                                     patient_address: '',
+                                    from_date: '',
+                                    to_date: '',
+                                    status: '',
                                 });
                                 filterForm.get(route('reports.index'), {
                                     preserveScroll: true,
@@ -134,7 +179,7 @@ export default function AllReport({
                                         {report.publication_status === 'released' ? (
                                             <span className="rounded bg-emerald-100 px-2 py-1 text-xs text-emerald-700">Released</span>
                                         ) : (
-                                            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-700">Unpublished</span>
+                                            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-700">Unreleased</span>
                                         )}
                                     </td>
                                     <td className="py-2">

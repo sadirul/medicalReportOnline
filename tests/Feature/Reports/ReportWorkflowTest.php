@@ -203,6 +203,87 @@ class ReportWorkflowTest extends TestCase
             ->assertDontSee('ABEDA KHATUN');
     }
 
+    public function test_report_list_can_be_filtered_by_from_and_to_date(): void
+    {
+        $user = User::factory()->create();
+
+        Report::query()->create([
+            'user_id' => $user->id,
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'publication_status' => 'released',
+            'released_at' => now(),
+            'patient_name' => 'OLD PATIENT',
+            'patient_age' => 25,
+            'patient_sex' => 'Male',
+            'report_date' => now()->subDays(10),
+            'billing_date' => now()->subDays(10),
+            'collection_date' => now()->subDays(10),
+        ]);
+
+        Report::query()->create([
+            'user_id' => $user->id,
+            'memo_number' => '000000002',
+            'memo_sequence' => 2,
+            'publication_status' => 'released',
+            'released_at' => now(),
+            'patient_name' => 'NEW PATIENT',
+            'patient_age' => 30,
+            'patient_sex' => 'Female',
+            'report_date' => now()->subDays(1),
+            'billing_date' => now()->subDays(1),
+            'collection_date' => now()->subDays(1),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('reports.index', [
+                'from_date' => now()->subDays(2)->toDateString(),
+                'to_date' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('NEW PATIENT')
+            ->assertDontSee('OLD PATIENT');
+    }
+
+    public function test_report_list_can_be_filtered_by_status(): void
+    {
+        $user = User::factory()->create();
+
+        Report::query()->create([
+            'user_id' => $user->id,
+            'memo_number' => '000000010',
+            'memo_sequence' => 10,
+            'publication_status' => 'released',
+            'released_at' => now(),
+            'patient_name' => 'RELEASED PATIENT',
+            'patient_age' => 28,
+            'patient_sex' => 'Male',
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        Report::query()->create([
+            'user_id' => $user->id,
+            'memo_number' => '000000011',
+            'memo_sequence' => 11,
+            'publication_status' => 'unpublished',
+            'released_at' => null,
+            'patient_name' => 'UNPUBLISHED PATIENT',
+            'patient_age' => 32,
+            'patient_sex' => 'Female',
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('reports.index', ['status' => 'released']))
+            ->assertOk()
+            ->assertSee('RELEASED PATIENT')
+            ->assertDontSee('UNPUBLISHED PATIENT');
+    }
+
     public function test_pdf_is_not_available_until_report_is_released(): void
     {
         $owner = User::factory()->create();

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Patient;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -26,10 +25,11 @@ class StoreReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'patient_id' => [
-                'required',
-                Rule::exists(Patient::class, 'id')->where('user_id', $this->user()?->id),
-            ],
+            'patient_name' => ['required', 'string', 'max:255'],
+            'patient_age' => ['required', 'integer', 'min:0', 'max:150'],
+            'patient_sex' => ['required', Rule::in(['Male', 'Female', 'Other'])],
+            'patient_address' => ['nullable', 'string', 'max:1000'],
+            'patient_referred_by' => ['nullable', 'string', 'max:255'],
             'billing_date' => ['required', 'date'],
             'collection_date' => ['required', 'date'],
             'report_date' => ['required', 'date'],

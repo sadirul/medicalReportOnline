@@ -14,7 +14,7 @@ class ReportPdfController extends Controller
     {
         abort_unless($report->user_id === $request->user()->id, 403);
 
-        $report->load(['patient', 'items.investigation.department', 'user']);
+        $report->load(['items.investigation.department', 'user']);
         $clinic = $report->user;
 
         $toDataUri = static function (?string $path): ?string {
@@ -47,7 +47,6 @@ class ReportPdfController extends Controller
 
         $pdf = Pdf::loadView('pdf.report', [
             'report' => $report,
-            'patient' => $report->patient,
             'clinic' => $clinic,
             'groupedItems' => $groupedItems,
             'headerImage' => $toDataUri($clinic->report_header_image),

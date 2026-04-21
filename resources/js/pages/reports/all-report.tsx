@@ -12,14 +12,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 type ReportRow = {
     id: number;
+    memo_number?: string | null;
     billing_date: string;
     collection_date: string;
     report_date: string;
     department?: string | null;
-    patient: {
-        name: string;
-        v_id: string;
-    };
+    patient_name: string;
 };
 
 const dateTime = (value: string) => new Date(value).toLocaleString();
@@ -40,7 +38,7 @@ export default function AllReport({ reports }: { reports: ReportRow[] }) {
                         <thead>
                             <tr className="text-left text-slate-500">
                                 <th className="py-2">Patient</th>
-                                <th className="py-2">V.Id</th>
+                                <th className="py-2">Memo Number</th>
                                 <th className="py-2">Billing Date</th>
                                 <th className="py-2">Report Date</th>
                                 <th className="py-2">Action</th>
@@ -56,12 +54,15 @@ export default function AllReport({ reports }: { reports: ReportRow[] }) {
                             )}
                             {reports.map((report) => (
                                 <tr key={report.id} className="border-t">
-                                    <td className="py-2">{report.patient.name}</td>
-                                    <td className="py-2">{report.patient.v_id}</td>
+                                    <td className="py-2">{report.patient_name}</td>
+                                    <td className="py-2">{report.memo_number ?? '-'}</td>
                                     <td className="py-2">{dateTime(report.billing_date)}</td>
                                     <td className="py-2">{dateTime(report.report_date)}</td>
                                     <td className="py-2">
                                         <div className="flex gap-2">
+                                            <Button size="sm" variant="outline" asChild>
+                                                <Link href={route('reports.edit', report.id)}>Edit</Link>
+                                            </Button>
                                             <Button size="sm" variant="outline" asChild>
                                                 <Link href={route('reports.show', report.id)}>View</Link>
                                             </Button>

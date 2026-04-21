@@ -143,19 +143,19 @@
     <div class="department-page">
         <table class="meta-table">
             <tr>
-                <td><strong>Patient Name:</strong> {{ $patient->name }}</td>
-                <td><strong>V.Id:</strong> {{ $patient->v_id }}</td>
+                <td><strong>Patient Name:</strong> {{ $report->patient_name }}</td>
+                <td><strong>Memo Number:</strong> {{ $report->memo_number ?: '-' }}</td>
             </tr>
             <tr>
-                <td><strong>Age/Sex:</strong> {{ $patient->age }} Y / {{ $patient->sex }}</td>
+                <td><strong>Age/Sex:</strong> {{ $report->patient_age }} Y / {{ $report->patient_sex }}</td>
                 <td><strong>Billing Date:</strong> {{ $report->billing_date->format('d/M/Y h:i A') }}</td>
             </tr>
             <tr>
-                <td><strong>Address:</strong> {{ $patient->address ?: '-' }}</td>
+                <td><strong>Address:</strong> {{ $report->patient_address ?: '-' }}</td>
                 <td><strong>Collection Date:</strong> {{ $report->collection_date->format('d/M/Y h:i A') }}</td>
             </tr>
             <tr>
-                <td><strong>Referred By:</strong> {{ $patient->referred_by ?: '-' }}</td>
+                <td><strong>Referred By:</strong> {{ $report->patient_referred_by ?: '-' }}</td>
                 <td><strong>Report Date:</strong> {{ $report->report_date->format('d/M/Y h:i A') }}</td>
             </tr>
         </table>

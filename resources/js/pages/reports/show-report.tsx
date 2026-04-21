@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 type ReportItem = {
     id: number;
@@ -22,6 +22,7 @@ type ReportItem = {
 
 type Report = {
     id: number;
+    memo_number?: string | null;
     department?: string | null;
     billing_date: string;
     collection_date: string;
@@ -29,14 +30,11 @@ type Report = {
     sample_note?: string | null;
     equipment_note?: string | null;
     interpretation_note?: string | null;
-    patient: {
-        name: string;
-        v_id: string;
-        age: number;
-        sex: string;
-        address?: string | null;
-        referred_by?: string | null;
-    };
+    patient_name: string;
+    patient_age: number;
+    patient_sex: string;
+    patient_address?: string | null;
+    patient_referred_by?: string | null;
     items: ReportItem[];
 };
 
@@ -63,32 +61,37 @@ export default function ShowReport({ report }: { report: Report }) {
             <div className="space-y-5 rounded-xl border bg-white p-5 shadow-sm dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                     <h1 className="text-lg font-semibold">Report #{report.id}</h1>
-                    <Button asChild>
-                        <a href={route('reports.pdf', report.id)}>Download PDF</a>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" asChild>
+                            <Link href={route('reports.edit', report.id)}>Edit report</Link>
+                        </Button>
+                        <Button asChild>
+                            <a href={route('reports.pdf', report.id)}>Download PDF</a>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid gap-2 rounded-lg border p-4 text-sm md:grid-cols-2">
                     <p>
-                        <strong>Patient Name:</strong> {report.patient.name}
+                        <strong>Patient Name:</strong> {report.patient_name}
                     </p>
                     <p>
-                        <strong>V.Id:</strong> {report.patient.v_id}
+                        <strong>Memo Number:</strong> {report.memo_number ?? '-'}
                     </p>
                     <p>
-                        <strong>Age/Sex:</strong> {report.patient.age} Y / {report.patient.sex}
+                        <strong>Age/Sex:</strong> {report.patient_age} Y / {report.patient_sex}
                     </p>
                     <p>
                         <strong>Billing Date:</strong> {dateTime(report.billing_date)}
                     </p>
                     <p>
-                        <strong>Address:</strong> {report.patient.address ?? '-'}
+                        <strong>Address:</strong> {report.patient_address ?? '-'}
                     </p>
                     <p>
                         <strong>Collection Date:</strong> {dateTime(report.collection_date)}
                     </p>
                     <p>
-                        <strong>Referred By:</strong> {report.patient.referred_by ?? '-'}
+                        <strong>Referred By:</strong> {report.patient_referred_by ?? '-'}
                     </p>
                     <p>
                         <strong>Report Date:</strong> {dateTime(report.report_date)}

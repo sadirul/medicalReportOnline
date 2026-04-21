@@ -4,7 +4,6 @@ namespace Tests\Feature\Reports;
 
 use App\Models\Department;
 use App\Models\Investigation;
-use App\Models\Patient;
 use App\Models\Report;
 use App\Models\ReportItem;
 use App\Models\User;
@@ -14,55 +13,6 @@ use Tests\TestCase;
 class ReportWorkflowTest extends TestCase
 {
     use RefreshDatabase;
-
-    public function test_patient_can_be_created_and_updated(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user)->post(route('patients.store'), [
-            'name' => 'MRS. ABEDA KHATUN',
-            'v_id' => '012601100470',
-            'age' => 54,
-            'sex' => 'Female',
-            'address' => 'Kolkata',
-            'referred_by' => 'Dr.OF KOLKATA MEDICAL COLLEGE',
-        ])->assertSessionHasNoErrors();
-
-        $patient = Patient::query()->first();
-        $this->assertNotNull($patient);
-
-        $this->actingAs($user)->patch(route('patients.update', $patient), [
-            'name' => 'MRS. ABEDA KHATUN',
-            'v_id' => '012601100470',
-            'age' => 55,
-            'sex' => 'Female',
-            'address' => 'Kolkata',
-            'referred_by' => 'Dr.OF KOLKATA MEDICAL COLLEGE',
-        ])->assertSessionHasNoErrors();
-
-        $this->assertSame(55, $patient->fresh()->age);
-    }
-
-    public function test_patient_update_is_forbidden_for_another_user(): void
-    {
-        $owner = User::factory()->create();
-        $other = User::factory()->create();
-
-        $patient = Patient::query()->create([
-            'user_id' => $owner->id,
-            'name' => 'A',
-            'v_id' => 'VID-001',
-            'age' => 22,
-            'sex' => 'Female',
-        ]);
-
-        $this->actingAs($other)->patch(route('patients.update', $patient), [
-            'name' => 'B',
-            'v_id' => 'VID-001',
-            'age' => 22,
-            'sex' => 'Female',
-        ])->assertForbidden();
-    }
 
     public function test_department_and_investigation_can_be_created_and_updated(): void
     {
@@ -98,16 +48,6 @@ class ReportWorkflowTest extends TestCase
     public function test_report_can_be_created_and_listed(): void
     {
         $user = User::factory()->create();
-        $patient = Patient::query()->create([
-            'user_id' => $user->id,
-            'name' => 'MRS. ABEDA KHATUN',
-            'v_id' => '012601100470',
-            'age' => 54,
-            'sex' => 'Female',
-            'address' => 'Kolkata',
-            'referred_by' => 'Dr.OF KOLKATA MEDICAL COLLEGE',
-        ]);
-
         $department = Department::query()->create([
             'user_id' => $user->id,
             'name' => 'DEPARTMENT OF BIOCHEMISTRY',
@@ -121,11 +61,14 @@ class ReportWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($user)->post(route('reports.store'), [
-            'patient_id' => $patient->id,
+            'patient_name' => 'MRS. ABEDA KHATUN',
+            'patient_age' => 54,
+            'patient_sex' => 'Female',
+            'patient_address' => 'Kolkata',
+            'patient_referred_by' => 'Dr.OF KOLKATA MEDICAL COLLEGE',
             'billing_date' => now()->subMinutes(10)->toDateTimeString(),
             'collection_date' => now()->subMinutes(7)->toDateTimeString(),
             'report_date' => now()->toDateTimeString(),
-            'department' => 'DEPARTMENT OF HAEMATOLOGY',
             'sample_note' => 'EDTA-Whole Blood',
             'equipment_note' => 'Sysmex XN-1000 Cell Counter',
             'interpretation_note' => 'Please correlate with clinical conditions.',
@@ -144,9 +87,68 @@ class ReportWorkflowTest extends TestCase
 
         $report = Report::query()->first();
         $this->assertNotNull($report);
+        $this->assertSame(1, $report->memo_sequence);
+        $this->assertSame('000000001', $report->memo_number);
         $this->assertDatabaseCount('report_items', 1);
 
         $this->actingAs($user)->get(route('reports.index'))->assertOk();
+    }
+
+    public function test_report_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+        $department = Department::query()->create([
+            'user_id' => $user->id,
+            'name' => 'DEPARTMENT OF BIOCHEMISTRY',
+        ]);
+        $investigation = Investigation::query()->create([
+            'department_id' => $department->id,
+            'name' => 'TEST OLD',
+            'unit' => 'mg/dL',
+            'bio_ref_interval' => '( 1 - 2 )',
+        ]);
+
+        $report = Report::query()->create([
+            'user_id' => $user->id,
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'patient_name' => 'Old Patient',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'billing_date' => now()->subMinutes(5),
+            'collection_date' => now()->subMinutes(3),
+            'report_date' => now(),
+            'department' => 'DEPARTMENT OF BIOCHEMISTRY',
+        ]);
+
+        $this->actingAs($user)->patch(route('reports.update', $report), [
+            'patient_name' => 'Updated Patient',
+            'patient_age' => 31,
+            'patient_sex' => 'Female',
+            'billing_date' => now()->subMinutes(10)->toDateTimeString(),
+            'collection_date' => now()->subMinutes(7)->toDateTimeString(),
+            'report_date' => now()->toDateTimeString(),
+            'items' => [
+                [
+                    'department_id' => $department->id,
+                    'investigation_id' => $investigation->id,
+                    'parameter_name' => 'TEST UPDATED',
+                    'method' => '',
+                    'value' => '2.2',
+                    'unit' => 'mg/dL',
+                    'bio_ref_interval' => '( 1 - 2 )',
+                ],
+            ],
+        ])->assertRedirect(route('reports.show', $report));
+
+        $report->refresh();
+        $this->assertSame('Updated Patient', $report->patient_name);
+        $this->assertSame(31, $report->patient_age);
+        $this->assertSame('000000001', $report->memo_number);
+        $this->assertDatabaseHas('report_items', [
+            'report_id' => $report->id,
+            'parameter_name' => 'TEST UPDATED',
+        ]);
     }
 
     public function test_pdf_is_available_only_to_owner(): void
@@ -154,17 +156,13 @@ class ReportWorkflowTest extends TestCase
         $owner = User::factory()->create();
         $other = User::factory()->create();
 
-        $patient = Patient::query()->create([
-            'user_id' => $owner->id,
-            'name' => 'Patient',
-            'v_id' => 'VID-PDF',
-            'age' => 30,
-            'sex' => 'Male',
-        ]);
-
         $report = Report::query()->create([
             'user_id' => $owner->id,
-            'patient_id' => $patient->id,
+            'patient_name' => 'Patient',
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
             'billing_date' => now()->subMinutes(5),
             'collection_date' => now()->subMinutes(3),
             'report_date' => now(),
@@ -182,5 +180,58 @@ class ReportWorkflowTest extends TestCase
 
         $this->actingAs($owner)->get(route('reports.pdf', $report))->assertOk();
         $this->actingAs($other)->get(route('reports.pdf', $report))->assertForbidden();
+    }
+
+    public function test_memo_number_sequence_is_independent_per_clinic(): void
+    {
+        $clinicA = User::factory()->create();
+        $clinicB = User::factory()->create();
+
+        $departmentA = Department::query()->create(['user_id' => $clinicA->id, 'name' => 'BIOCHEMISTRY']);
+        $departmentB = Department::query()->create(['user_id' => $clinicB->id, 'name' => 'BIOCHEMISTRY']);
+
+        $investigationA = Investigation::query()->create([
+            'department_id' => $departmentA->id,
+            'name' => 'TEST A',
+            'unit' => 'mg/dL',
+            'bio_ref_interval' => '( 1 - 2 )',
+        ]);
+        $investigationB = Investigation::query()->create([
+            'department_id' => $departmentB->id,
+            'name' => 'TEST B',
+            'unit' => 'mg/dL',
+            'bio_ref_interval' => '( 1 - 2 )',
+        ]);
+
+        $payloadFor = fn (int $departmentId, int $investigationId) => [
+            'patient_name' => 'Patient',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'billing_date' => now()->toDateTimeString(),
+            'collection_date' => now()->toDateTimeString(),
+            'report_date' => now()->toDateTimeString(),
+            'items' => [
+                [
+                    'department_id' => $departmentId,
+                    'investigation_id' => $investigationId,
+                    'parameter_name' => 'Test',
+                    'value' => '1.0',
+                    'unit' => 'mg/dL',
+                    'bio_ref_interval' => '( 1 - 2 )',
+                ],
+            ],
+        ];
+
+        $this->actingAs($clinicA)->post(route('reports.store'), $payloadFor($departmentA->id, $investigationA->id))->assertRedirect();
+        $this->actingAs($clinicA)->post(route('reports.store'), $payloadFor($departmentA->id, $investigationA->id))->assertRedirect();
+        $this->actingAs($clinicB)->post(route('reports.store'), $payloadFor($departmentB->id, $investigationB->id))->assertRedirect();
+
+        $clinicAReports = Report::query()->where('user_id', $clinicA->id)->orderBy('id')->get();
+        $clinicBReports = Report::query()->where('user_id', $clinicB->id)->orderBy('id')->get();
+
+        $this->assertSame([1, 2], $clinicAReports->pluck('memo_sequence')->all());
+        $this->assertSame(['000000001', '000000002'], $clinicAReports->pluck('memo_number')->all());
+        $this->assertSame([1], $clinicBReports->pluck('memo_sequence')->all());
+        $this->assertSame(['000000001'], $clinicBReports->pluck('memo_number')->all());
     }
 }

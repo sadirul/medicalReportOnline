@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Building2, FlaskConical, PlusCircle, Trash2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,16 +15,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-type Patient = {
-    id: number;
-    name: string;
-    v_id: string;
-    age: number;
-    sex: string;
-    address?: string | null;
-    referred_by?: string | null;
-};
-
 type Investigation = {
     id: number;
     department_id: number;
@@ -31,6 +22,34 @@ type Investigation = {
     department?: { id: number; name: string };
     unit?: string | null;
     bio_ref_interval?: string | null;
+};
+
+type EditableReport = {
+    id: number;
+    patient_name: string;
+    patient_age: number;
+    patient_sex: string;
+    patient_address?: string | null;
+    patient_referred_by?: string | null;
+    billing_date: string;
+    collection_date: string;
+    report_date: string;
+    sample_note?: string | null;
+    equipment_note?: string | null;
+    interpretation_note?: string | null;
+    items: Array<{
+        investigation_id?: number | null;
+        parameter_name: string;
+        method?: string | null;
+        value?: string | null;
+        unit?: string | null;
+        bio_ref_interval?: string | null;
+        investigation?: {
+            department?: {
+                id: number;
+            } | null;
+        } | null;
+    }>;
 };
 
 type InvestigationRow = {
@@ -68,28 +87,59 @@ const dateForInput = () => {
 };
 
 export default function CreateReport({
-    patient,
-    patients,
     departments,
     investigations,
+    report,
 }: {
-    patient: Patient | null;
-    patients: Patient[];
     departments: { id: number; name: string }[];
     investigations: Investigation[];
+    report: EditableReport | null;
 }) {
-    const { data, setData, post, transform, errors, processing } = useForm({
-        patient_id: patient?.id ? String(patient.id) : '',
-        billing_date: dateForInput(),
-        collection_date: dateForInput(),
-        report_date: dateForInput(),
-        sample_note: '',
-        equipment_note: '',
-        interpretation_note: '',
-        department_rows: [blankDepartmentRow()],
-    });
+    const isEdit = !!report;
 
-    const selectedPatient = patients.find((entry) => String(entry.id) === data.patient_id) ?? patient ?? null;
+    const departmentRowsFromReport = (reportData: EditableReport | null): DepartmentRow[] => {
+        if (!reportData || reportData.items.length === 0) {
+            return [blankDepartmentRow()];
+        }
+
+        const rowsByDepartment = new Map<string, InvestigationRow[]>();
+
+        reportData.items.forEach((item) => {
+            const departmentId = item.investigation?.department?.id ? String(item.investigation.department.id) : '';
+            const existing = rowsByDepartment.get(departmentId) ?? [];
+
+            existing.push({
+                investigation_id: item.investigation_id ? String(item.investigation_id) : '',
+                parameter_name: item.parameter_name ?? '',
+                method: item.method ?? '',
+                value: item.value ?? '',
+                unit: item.unit ?? '',
+                bio_ref_interval: item.bio_ref_interval ?? '',
+            });
+
+            rowsByDepartment.set(departmentId, existing);
+        });
+
+        return Array.from(rowsByDepartment.entries()).map(([department_id, rows]) => ({
+            department_id,
+            investigations: rows.length > 0 ? rows : [blankInvestigationRow()],
+        }));
+    };
+
+    const { data, setData, post, transform, errors, processing } = useForm({
+        patient_name: report?.patient_name ?? '',
+        patient_age: report ? String(report.patient_age) : '',
+        patient_sex: report?.patient_sex ?? '',
+        patient_address: report?.patient_address ?? '',
+        patient_referred_by: report?.patient_referred_by ?? '',
+        billing_date: report ? report.billing_date.slice(0, 16) : dateForInput(),
+        collection_date: report ? report.collection_date.slice(0, 16) : dateForInput(),
+        report_date: report ? report.report_date.slice(0, 16) : dateForInput(),
+        sample_note: report?.sample_note ?? '',
+        equipment_note: report?.equipment_note ?? '',
+        interpretation_note: report?.interpretation_note ?? '',
+        department_rows: departmentRowsFromReport(report),
+    });
 
     const updateInvestigationRow = (rowIndex: number, investigationIndex: number, key: keyof InvestigationRow, value: string) => {
         const rows = [...data.department_rows];
@@ -172,7 +222,11 @@ export default function CreateReport({
         );
 
         const payload = {
-            patient_id: data.patient_id,
+            patient_name: data.patient_name,
+            patient_age: data.patient_age,
+            patient_sex: data.patient_sex,
+            patient_address: data.patient_address,
+            patient_referred_by: data.patient_referred_by,
             billing_date: data.billing_date,
             collection_date: data.collection_date,
             report_date: data.report_date,
@@ -180,58 +234,60 @@ export default function CreateReport({
             equipment_note: data.equipment_note,
             interpretation_note: data.interpretation_note,
             items,
+            ...(isEdit ? { _method: 'patch' as const } : {}),
         };
 
         transform(() => payload);
 
-        post(route('reports.store'), {
+        post(isEdit ? route('reports.update', report!.id) : route('reports.store'), {
             preserveScroll: true,
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create report" />
+            <Head title={isEdit ? 'Edit report' : 'Create report'} />
             <form onSubmit={submit} className="space-y-6 rounded-xl border bg-white p-5 shadow-sm dark:bg-slate-900">
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="grid gap-2">
-                        <Label htmlFor="patient_id">Patient</Label>
+                        <Label htmlFor="patient_name">Patient Name</Label>
+                        <Input id="patient_name" value={data.patient_name} onChange={(e) => setData('patient_name', e.target.value)} />
+                        <InputError message={errors.patient_name} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="patient_age">Age</Label>
+                        <Input id="patient_age" type="number" min={0} value={data.patient_age} onChange={(e) => setData('patient_age', e.target.value)} />
+                        <InputError message={errors.patient_age} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="patient_sex">Sex</Label>
                         <select
-                            id="patient_id"
-                            value={data.patient_id}
-                            onChange={(event) => setData('patient_id', event.target.value)}
+                            id="patient_sex"
+                            value={data.patient_sex}
+                            onChange={(e) => setData('patient_sex', e.target.value)}
                             className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
                         >
-                            <option value="">Select patient</option>
-                            {patients.map((entry) => (
-                                <option key={entry.id} value={entry.id}>
-                                    {entry.name} ({entry.v_id})
-                                </option>
-                            ))}
+                            <option value="">Select sex</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
                         </select>
-                        <InputError message={errors.patient_id} />
+                        <InputError message={errors.patient_sex} />
                     </div>
                 </div>
 
-                {selectedPatient && (
-                    <div className="grid gap-2 rounded-lg border p-4 text-sm md:grid-cols-2">
-                        <p>
-                            <strong>Patient Name:</strong> {selectedPatient.name}
-                        </p>
-                        <p>
-                            <strong>V.Id:</strong> {selectedPatient.v_id}
-                        </p>
-                        <p>
-                            <strong>Age/Sex:</strong> {selectedPatient.age} Y / {selectedPatient.sex}
-                        </p>
-                        <p>
-                            <strong>Address:</strong> {selectedPatient.address ?? '-'}
-                        </p>
-                        <p>
-                            <strong>Referred By:</strong> {selectedPatient.referred_by ?? '-'}
-                        </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                        <Label htmlFor="patient_address">Address</Label>
+                        <Input id="patient_address" value={data.patient_address} onChange={(e) => setData('patient_address', e.target.value)} />
+                        <InputError message={errors.patient_address} />
                     </div>
-                )}
+                    <div className="grid gap-2">
+                        <Label htmlFor="patient_referred_by">Referred By</Label>
+                        <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} />
+                        <InputError message={errors.patient_referred_by} />
+                    </div>
+                </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
                     <div className="grid gap-2">
@@ -253,8 +309,17 @@ export default function CreateReport({
 
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold">Departments with investigations</h3>
-                        <Button type="button" variant="outline" onClick={addDepartmentRow}>
+                        <h3 className="flex items-center gap-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
+                            <Building2 className="h-4 w-4" />
+                            Departments with investigations
+                        </h3>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addDepartmentRow}
+                            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />
                             Add department row
                         </Button>
                     </div>
@@ -267,12 +332,16 @@ export default function CreateReport({
                                     : 'border-l-emerald-500 bg-emerald-50/60 dark:border-l-emerald-400 dark:bg-emerald-950/25'
                             }`}
                         >
-                            <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-300">
+                            <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-200">
+                                <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                                 Department Card #{rowIndex + 1}
                             </div>
                             <div className="flex items-end gap-2">
                                 <div className="grid flex-1 gap-1">
-                                    <Label>Department row</Label>
+                                    <Label className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                                        <Building2 className="h-4 w-4" />
+                                        Department row
+                                    </Label>
                                     <select
                                         value={row.department_id}
                                         onChange={(e) => onDepartmentChange(rowIndex, e.target.value)}
@@ -286,7 +355,13 @@ export default function CreateReport({
                                         ))}
                                     </select>
                                 </div>
-                                <Button type="button" variant="outline" onClick={() => removeDepartmentRow(rowIndex)}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => removeDepartmentRow(rowIndex)}
+                                    className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
                                     Remove department
                                 </Button>
                             </div>
@@ -327,7 +402,13 @@ export default function CreateReport({
                                         value={investigationRow.bio_ref_interval}
                                         onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'bio_ref_interval', e.target.value)}
                                     />
-                                    <Button type="button" variant="outline" onClick={() => removeInvestigationRow(rowIndex, investigationIndex)}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => removeInvestigationRow(rowIndex, investigationIndex)}
+                                        className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
                                         Remove row
                                     </Button>
                                 </div>
@@ -339,7 +420,9 @@ export default function CreateReport({
                                     variant="outline"
                                     onClick={() => addInvestigationUnderDepartment(rowIndex)}
                                     disabled={!row.department_id}
+                                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                                 >
+                                    <FlaskConical className="mr-2 h-4 w-4" />
                                     Add investigation row
                                 </Button>
                             </div>
@@ -363,7 +446,7 @@ export default function CreateReport({
                     </div>
                 </div>
 
-                <Button disabled={processing}>Create report</Button>
+                <Button disabled={processing}>{isEdit ? 'Update report' : 'Create report'}</Button>
             </form>
         </AppLayout>
     );

@@ -13,6 +13,11 @@ const mainNavItems: NavItem[] = [
         url: '/dashboard',
         icon: appNavIcons.dashboard,
     },
+    {
+        title: 'Departments',
+        url: '/departments',
+        icon: appNavIcons.createReport,
+    },
 ];
 
 const reportsNavItems: NavItem[] = [
@@ -21,16 +26,6 @@ const reportsNavItems: NavItem[] = [
         url: '/reports',
         icon: appNavIcons.allReports,
         items: [
-            {
-                title: 'Patients',
-                url: '/patients',
-                icon: appNavIcons.allReports,
-            },
-            {
-                title: 'Departments',
-                url: '/departments',
-                icon: appNavIcons.createReport,
-            },
             {
                 title: 'Create report',
                 url: '/reports/create-report',

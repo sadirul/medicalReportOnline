@@ -32,7 +32,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $validated = $request->validated();
-        unset($validated['logo'], $validated['report_header_image'], $validated['report_footer_image']);
+        unset($validated['logo'], $validated['report_header_image'], $validated['report_footer_image'], $validated['signature_image']);
 
         $user->fill($validated);
 
@@ -58,6 +58,14 @@ class ProfileController extends Controller
             }
 
             $user->report_footer_image = $request->file('report_footer_image')->store('report-assets', 'public');
+        }
+
+        if ($request->hasFile('signature_image')) {
+            if ($user->signature_image && Storage::disk('public')->exists($user->signature_image)) {
+                Storage::disk('public')->delete($user->signature_image);
+            }
+
+            $user->signature_image = $request->file('signature_image')->store('signatures', 'public');
         }
 
         if ($user->isDirty('email')) {

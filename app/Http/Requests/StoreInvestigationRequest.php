@@ -32,6 +32,7 @@ class StoreInvestigationRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'unit' => ['nullable', 'string', 'max:100'],
             'bio_ref_interval' => ['nullable', 'string', 'max:255'],
+            'amount' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

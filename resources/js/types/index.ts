@@ -44,6 +44,7 @@ export interface User {
     logo?: string | null;
     report_header_image?: string | null;
     report_footer_image?: string | null;
+    signature_image?: string | null;
     alternate_mobile?: string | null;
     is_verified?: boolean;
     email: string;
@@ -77,6 +78,7 @@ export interface Investigation {
     department?: Department;
     unit?: string | null;
     bio_ref_interval?: string | null;
+    amount?: string | null;
 }
 
 export interface ReportItem {

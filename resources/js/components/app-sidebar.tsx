@@ -15,8 +15,20 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Departments',
-        url: '/departments',
+        url: '/departments/all-department',
         icon: appNavIcons.createReport,
+        items: [
+            {
+                title: 'Create department',
+                url: '/departments/create-department',
+                icon: appNavIcons.createReport,
+            },
+            {
+                title: 'All department',
+                url: '/departments/all-department',
+                icon: appNavIcons.allReports,
+            },
+        ],
     },
 ];
 

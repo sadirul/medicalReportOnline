@@ -1,7 +1,9 @@
 import { Button } from '@/components/ui/button';
+import { formatDateTimeInKolkata } from '@/lib/date-time';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
+import { Printer, ReceiptText } from 'lucide-react';
 
 type ReportItem = {
     id: number;
@@ -22,7 +24,9 @@ type ReportItem = {
 
 type Report = {
     id: number;
+    uuid?: string | null;
     memo_number?: string | null;
+    publication_status?: 'unpublished' | 'released' | string;
     department?: string | null;
     billing_date: string;
     collection_date: string;
@@ -37,8 +41,6 @@ type Report = {
     patient_referred_by?: string | null;
     items: ReportItem[];
 };
-
-const dateTime = (value: string) => new Date(value).toLocaleString();
 
 export default function ShowReport({ report }: { report: Report }) {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -62,11 +64,42 @@ export default function ShowReport({ report }: { report: Report }) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-lg font-semibold">Report #{report.id}</h1>
                     <div className="flex gap-2">
+                        {report.publication_status !== 'released' && (
+                            <Button
+                                variant="secondary"
+                                className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                                asChild
+                            >
+                                <Link href={route('reports.release', report.id)} method="post" as="button">
+                                    Release
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="outline" asChild>
                             <Link href={route('reports.edit', report.id)}>Edit report</Link>
                         </Button>
                         <Button asChild>
-                            <a href={route('reports.pdf', report.id)}>Download PDF</a>
+                            <a
+                                href={report.uuid ? route('reports.pdf', { report: report.uuid }) : '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Print report PDF"
+                                title="Print report PDF"
+                            >
+                                <Printer className="h-4 w-4" />
+                            </a>
+                        </Button>
+                        <Button variant="outline" asChild>
+                            <a
+                                href={report.uuid ? route('reports.public.bill', { report: report.uuid }) : route('reports.bill', report.id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Print invoice"
+                                title="Print invoice"
+                            >
+                                <ReceiptText className="mr-1 h-4 w-4" />
+                                Invoice
+                            </a>
                         </Button>
                     </div>
                 </div>
@@ -79,22 +112,30 @@ export default function ShowReport({ report }: { report: Report }) {
                         <strong>Memo Number:</strong> {report.memo_number ?? '-'}
                     </p>
                     <p>
+                        <strong>Status:</strong>{' '}
+                        {report.publication_status === 'released' ? (
+                            <span className="rounded bg-emerald-100 px-2 py-1 text-xs text-emerald-700">Released</span>
+                        ) : (
+                            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-700">Unpublished</span>
+                        )}
+                    </p>
+                    <p>
                         <strong>Age/Sex:</strong> {report.patient_age} Y / {report.patient_sex}
                     </p>
                     <p>
-                        <strong>Billing Date:</strong> {dateTime(report.billing_date)}
+                        <strong>Billing Date:</strong> {formatDateTimeInKolkata(report.billing_date)}
                     </p>
                     <p>
                         <strong>Address:</strong> {report.patient_address ?? '-'}
                     </p>
                     <p>
-                        <strong>Collection Date:</strong> {dateTime(report.collection_date)}
+                        <strong>Collection Date:</strong> {formatDateTimeInKolkata(report.collection_date)}
                     </p>
                     <p>
                         <strong>Referred By:</strong> {report.patient_referred_by ?? '-'}
                     </p>
                     <p>
-                        <strong>Report Date:</strong> {dateTime(report.report_date)}
+                        <strong>Report Date:</strong> {formatDateTimeInKolkata(report.report_date)}
                     </p>
                 </div>
 

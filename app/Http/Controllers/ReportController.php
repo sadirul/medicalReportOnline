@@ -8,6 +8,7 @@ use App\Models\Report;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,13 +16,36 @@ class ReportController extends Controller
 {
     public function index(Request $request): Response
     {
-        $reports = $request->user()
+        $patientName = trim($request->string('patient_name')->toString());
+        $patientAddress = trim($request->string('patient_address')->toString());
+
+        $reportsQuery = $request->user()
             ->reports()
-            ->latest()
-            ->get();
+            ->latest();
+
+        if ($patientName !== '') {
+            $reportsQuery->where('patient_name', 'like', '%'.$patientName.'%');
+        }
+
+        if ($patientAddress !== '') {
+            $reportsQuery->where('patient_address', 'like', '%'.$patientAddress.'%');
+        }
+
+        $reports = $reportsQuery->get();
+        $reports->each(function (Report $report): void {
+            if (! $report->uuid) {
+                $report->forceFill([
+                    'uuid' => (string) Str::uuid(),
+                ])->save();
+            }
+        });
 
         return Inertia::render('reports/all-report', [
             'reports' => $reports,
+            'filters' => [
+                'patient_name' => $patientName,
+                'patient_address' => $patientAddress,
+            ],
         ]);
     }
 
@@ -106,6 +130,8 @@ class ReportController extends Controller
                 'patient_id' => null,
                 'patient_name' => $validated['patient_name'],
                 'memo_sequence' => $nextMemoSequence,
+                'publication_status' => 'unpublished',
+                'released_at' => null,
                 'patient_v_id' => null,
                 'patient_age' => $validated['patient_age'],
                 'patient_sex' => $validated['patient_sex'],
@@ -139,6 +165,20 @@ class ReportController extends Controller
         });
 
         return to_route('reports.show', $report)->with('status', 'Report created successfully.');
+    }
+
+    public function release(Request $request, Report $report): RedirectResponse
+    {
+        abort_unless($report->user_id === $request->user()->id, 403);
+
+        if ($report->publication_status !== 'released') {
+            $report->update([
+                'publication_status' => 'released',
+                'released_at' => now(),
+            ]);
+        }
+
+        return back()->with('status', 'Report released successfully.');
     }
 
     public function update(StoreReportRequest $request, Report $report): RedirectResponse
@@ -196,6 +236,12 @@ class ReportController extends Controller
     public function show(Request $request, Report $report): Response
     {
         abort_unless($report->user_id === $request->user()->id, 403);
+
+        if (! $report->uuid) {
+            $report->forceFill([
+                'uuid' => (string) Str::uuid(),
+            ])->save();
+        }
 
         $report->load(['items.investigation.department']);
 

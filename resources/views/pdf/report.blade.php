@@ -148,15 +148,15 @@
             </tr>
             <tr>
                 <td><strong>Age/Sex:</strong> {{ $report->patient_age }} Y / {{ $report->patient_sex }}</td>
-                <td><strong>Billing Date:</strong> {{ $report->billing_date->format('d/M/Y h:i A') }}</td>
+                <td><strong>Billing Date:</strong> {{ $report->billing_date->timezone('Asia/Kolkata')->format('d-m-Y h:i A') }}</td>
             </tr>
             <tr>
                 <td><strong>Address:</strong> {{ $report->patient_address ?: '-' }}</td>
-                <td><strong>Collection Date:</strong> {{ $report->collection_date->format('d/M/Y h:i A') }}</td>
+                <td><strong>Collection Date:</strong> {{ $report->collection_date->timezone('Asia/Kolkata')->format('d-m-Y h:i A') }}</td>
             </tr>
             <tr>
                 <td><strong>Referred By:</strong> {{ $report->patient_referred_by ?: '-' }}</td>
-                <td><strong>Report Date:</strong> {{ $report->report_date->format('d/M/Y h:i A') }}</td>
+                <td><strong>Report Date:</strong> {{ $report->report_date->timezone('Asia/Kolkata')->format('d-m-Y h:i A') }}</td>
             </tr>
         </table>
 

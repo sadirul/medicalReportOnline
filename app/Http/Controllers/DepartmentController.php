@@ -13,16 +13,39 @@ use Inertia\Response;
 
 class DepartmentController extends Controller
 {
+    public function create(Request $request): Response
+    {
+        $departments = $request->user()
+            ->departments()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return Inertia::render('departments/create-department', [
+            'departments' => $departments,
+        ]);
+    }
+
     public function index(Request $request): Response
     {
         $departments = $request->user()
             ->departments()
-            ->with('investigations')
             ->orderBy('name')
+            ->withCount('investigations')
             ->get();
 
-        return Inertia::render('departments/index', [
+        return Inertia::render('departments/all-department', [
             'departments' => $departments,
+        ]);
+    }
+
+    public function show(Request $request, Department $department): Response
+    {
+        abort_unless($department->user_id === $request->user()->id, 403);
+
+        $department->load('investigations');
+
+        return Inertia::render('departments/show-department', [
+            'department' => $department,
         ]);
     }
 
@@ -51,6 +74,7 @@ class DepartmentController extends Controller
             'name' => $payload['name'],
             'unit' => $payload['unit'] ?? null,
             'bio_ref_interval' => $payload['bio_ref_interval'] ?? null,
+            'amount' => $payload['amount'] ?? null,
         ]);
 
         return back()->with('status', 'Investigation added successfully.');
@@ -67,6 +91,7 @@ class DepartmentController extends Controller
             'name' => $payload['name'],
             'unit' => $payload['unit'] ?? null,
             'bio_ref_interval' => $payload['bio_ref_interval'] ?? null,
+            'amount' => $payload['amount'] ?? null,
         ]);
 
         return back()->with('status', 'Investigation updated successfully.');

@@ -13,6 +13,11 @@ class Investigation extends Model
         'name',
         'unit',
         'bio_ref_interval',
+        'amount',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
     ];
 
     public function department(): BelongsTo

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'logo',
         'report_header_image',
         'report_footer_image',
+        'signature_image',
         'alternate_mobile',
         'is_verified',
         'otp_hash',

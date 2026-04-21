@@ -25,6 +25,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [headerPreview, setHeaderPreview] = useState<string | null>(null);
     const [footerPreview, setFooterPreview] = useState<string | null>(null);
+    const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
 
     const existingLogo = auth.user.logo
         ? auth.user.logo.startsWith('http')
@@ -33,6 +34,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
         : null;
     const existingHeaderImage = auth.user.report_header_image ? `/storage/${auth.user.report_header_image}` : null;
     const existingFooterImage = auth.user.report_footer_image ? `/storage/${auth.user.report_footer_image}` : null;
+    const existingSignatureImage = auth.user.signature_image ? `/storage/${auth.user.signature_image}` : null;
 
     const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
         full_name: auth.user.full_name ?? auth.user.name,
@@ -42,6 +44,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
         logo: null as File | null,
         report_header_image: null as File | null,
         report_footer_image: null as File | null,
+        signature_image: null as File | null,
         _method: 'patch',
     });
 
@@ -58,8 +61,12 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
             if (footerPreview) {
                 URL.revokeObjectURL(footerPreview);
             }
+
+            if (signaturePreview) {
+                URL.revokeObjectURL(signaturePreview);
+            }
         };
-    }, [footerPreview, headerPreview, logoPreview]);
+    }, [footerPreview, headerPreview, logoPreview, signaturePreview]);
 
     const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0] ?? null;
@@ -92,6 +99,17 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
         }
 
         setFooterPreview(file ? URL.createObjectURL(file) : null);
+    };
+
+    const handleSignatureImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+        setData('signature_image', file);
+
+        if (signaturePreview) {
+            URL.revokeObjectURL(signaturePreview);
+        }
+
+        setSignaturePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const submit: FormEventHandler = (e) => {
@@ -251,6 +269,26 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             </div>
 
                             <InputError className="mt-2" message={errors.report_footer_image} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="signature_image">Signature image</Label>
+
+                            <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                                <div className="mb-3 h-20 w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                                    {signaturePreview || existingSignatureImage ? (
+                                        <img src={signaturePreview ?? existingSignatureImage ?? ''} alt="Signature preview" className="h-full w-full object-contain" />
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-slate-400">
+                                            <ImagePlus className="h-5 w-5" />
+                                        </div>
+                                    )}
+                                </div>
+                                <Input id="signature_image" type="file" accept=".png,.jpg,.jpeg,.webp" onChange={handleSignatureImageChange} className="cursor-pointer" />
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">PNG, JPG or WEBP up to 2MB.</p>
+                            </div>
+
+                            <InputError className="mt-2" message={errors.signature_image} />
                         </div>
 
                         {mustVerifyEmail && auth.user.email_verified_at === null && (

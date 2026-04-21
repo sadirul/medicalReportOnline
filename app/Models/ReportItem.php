@@ -16,8 +16,16 @@ class ReportItem extends Model
         'value',
         'unit',
         'bio_ref_interval',
+        'amount',
         'display_order',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+        ];
+    }
 
     public function report(): BelongsTo
     {

@@ -90,6 +90,7 @@ export interface ReportItem {
     value?: string | null;
     unit?: string | null;
     bio_ref_interval?: string | null;
+    amount?: string | null;
     display_order: number;
 }
 

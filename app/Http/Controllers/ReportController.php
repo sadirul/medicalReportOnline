@@ -126,6 +126,10 @@ class ReportController extends Controller
     public function store(StoreReportRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $investigationAmounts = Investigation::query()
+            ->whereIn('id', collect($validated['items'])->pluck('investigation_id')->filter()->unique()->values())
+            ->whereHas('department', fn ($query) => $query->where('user_id', $request->user()->id))
+            ->pluck('amount', 'id');
         $departmentNames = $request->user()
             ->departments()
             ->whereIn('id', collect($validated['items'])->pluck('department_id')->filter()->unique()->values())
@@ -140,7 +144,7 @@ class ReportController extends Controller
         };
 
         /** @var Report $report */
-        $report = DB::transaction(function () use ($request, $resolvedDepartment, $validated) {
+        $report = DB::transaction(function () use ($request, $resolvedDepartment, $validated, $investigationAmounts) {
             DB::table('users')
                 ->where('id', $request->user()->id)
                 ->lockForUpdate()
@@ -176,6 +180,7 @@ class ReportController extends Controller
             ]);
 
             foreach ($validated['items'] as $index => $item) {
+                $investigationId = (int) ($item['investigation_id'] ?? 0);
                 $report->items()->create([
                     'investigation_id' => $item['investigation_id'] ?? null,
                     'parameter_name' => $item['parameter_name'],
@@ -183,6 +188,7 @@ class ReportController extends Controller
                     'value' => $item['value'] ?? null,
                     'unit' => $item['unit'] ?? null,
                     'bio_ref_interval' => $item['bio_ref_interval'] ?? null,
+                    'amount' => (float) ($investigationAmounts[$investigationId] ?? 0),
                     'display_order' => $index,
                 ]);
             }
@@ -226,6 +232,10 @@ class ReportController extends Controller
         abort_unless($report->user_id === $request->user()->id, 403);
 
         $validated = $request->validated();
+        $investigationAmounts = Investigation::query()
+            ->whereIn('id', collect($validated['items'])->pluck('investigation_id')->filter()->unique()->values())
+            ->whereHas('department', fn ($query) => $query->where('user_id', $request->user()->id))
+            ->pluck('amount', 'id');
         $departmentNames = $request->user()
             ->departments()
             ->whereIn('id', collect($validated['items'])->pluck('department_id')->filter()->unique()->values())
@@ -239,7 +249,7 @@ class ReportController extends Controller
             default => null,
         };
 
-        DB::transaction(function () use ($report, $resolvedDepartment, $validated): void {
+        DB::transaction(function () use ($report, $resolvedDepartment, $validated, $investigationAmounts): void {
             $report->update([
                 'patient_name' => $validated['patient_name'],
                 'patient_age' => $validated['patient_age'],
@@ -259,6 +269,7 @@ class ReportController extends Controller
             $report->items()->delete();
 
             foreach ($validated['items'] as $index => $item) {
+                $investigationId = (int) ($item['investigation_id'] ?? 0);
                 $report->items()->create([
                     'investigation_id' => $item['investigation_id'] ?? null,
                     'parameter_name' => $item['parameter_name'],
@@ -266,6 +277,7 @@ class ReportController extends Controller
                     'value' => $item['value'] ?? null,
                     'unit' => $item['unit'] ?? null,
                     'bio_ref_interval' => $item['bio_ref_interval'] ?? null,
+                    'amount' => (float) ($investigationAmounts[$investigationId] ?? 0),
                     'display_order' => $index,
                 ]);
             }

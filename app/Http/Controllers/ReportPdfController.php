@@ -81,7 +81,7 @@ class ReportPdfController extends Controller
         $clinic = $report->user;
 
         $lineItems = $report->items->map(function ($item) {
-            $amount = (float) ($item->investigation?->amount ?? 0);
+            $amount = (float) ($item->amount ?? 0);
 
             return [
                 'name' => $item->parameter_name,

@@ -5,7 +5,7 @@
     <title>Lab Report</title>
     <style>
         @page {
-            margin: 0;
+            margin: 120px 40px 105px 40px;
         }
 
         body {
@@ -18,30 +18,31 @@
 
         .header {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: -120px;
+            left: -40px;
+            right: -40px;
             height: 100px;
         }
 
         .footer {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 85px;
+            bottom: -105px;
+            left: -40px;
+            right: -40px;
+            height: auto;
             font-size: 10px;
             color: #4b5563;
         }
 
         .banner {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            display: block;
         }
 
-        .content {
-            margin: 100px 40px 105px 40px;
+        .blank-banner {
+            width: 100%;
+            height: 100%;
         }
 
         .clinic-row {
@@ -169,16 +170,19 @@
 <div class="header">
     @if(!empty($headerImage))
         <img src="{{ $headerImage }}" alt="Report Header" class="banner">
+    @else
+        <div class="blank-banner"></div>
     @endif
 </div>
 
 <div class="footer">
     @if(!empty($footerImage))
         <img src="{{ $footerImage }}" alt="Report Footer" class="banner">
+    @else
+        <div class="blank-banner"></div>
     @endif
 </div>
 
-<div class="content">
 @foreach($groupedItems as $group)
     <div class="department-page">
         <div class="patient-meta">
@@ -261,6 +265,5 @@
         @endif
     </div>
 @endif
-</div>
 </body>
 </html>

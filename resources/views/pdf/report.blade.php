@@ -5,18 +5,20 @@
     <title>Lab Report</title>
     <style>
         @page {
-            margin: 140px 40px 120px 40px;
+            margin: 0;
         }
 
         body {
             font-family: DejaVu Sans, sans-serif;
             color: #111827;
             font-size: 12px;
+            margin: 0;
+            padding: 0;
         }
 
         .header {
             position: fixed;
-            top: -120px;
+            top: 0;
             left: 0;
             right: 0;
             height: 100px;
@@ -24,7 +26,7 @@
 
         .footer {
             position: fixed;
-            bottom: -100px;
+            bottom: 0;
             left: 0;
             right: 0;
             height: 85px;
@@ -36,6 +38,10 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .content {
+            margin: 100px 40px 105px 40px;
         }
 
         .clinic-row {
@@ -143,6 +149,7 @@
     @endif
 </div>
 
+<div class="content">
 @foreach($groupedItems as $group)
     <div class="department-page">
         <table class="meta-table">
@@ -197,5 +204,6 @@
         @endif
     </div>
 @endif
+</div>
 </body>
 </html>

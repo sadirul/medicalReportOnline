@@ -42,8 +42,6 @@ export interface User {
     mobile: string;
     address: string;
     logo?: string | null;
-    report_header_image?: string | null;
-    report_footer_image?: string | null;
     signature_image?: string | null;
     alternate_mobile?: string | null;
     is_verified?: boolean;

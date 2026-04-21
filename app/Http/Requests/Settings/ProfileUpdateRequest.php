@@ -19,6 +19,7 @@ class ProfileUpdateRequest extends FormRequest
 
         $this->merge([
             'full_name' => $this->input('full_name', $user->full_name),
+            'clinic_name' => $this->input('clinic_name', $user->clinic_name),
             'mobile' => $this->input('mobile', $user->mobile),
             'email' => $this->input('email', $user->email),
             'address' => $this->input('address', $user->address),
@@ -34,14 +35,13 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'full_name' => ['required', 'string', 'max:255'],
+            'clinic_name' => ['required', 'string', 'max:255'],
             'mobile' => [
                 'required',
                 'digits:10',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'report_header_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'report_footer_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'signature_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
 
             'email' => [

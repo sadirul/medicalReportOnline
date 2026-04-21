@@ -28,8 +28,6 @@ class User extends Authenticatable
         'password',
         'address',
         'logo',
-        'report_header_image',
-        'report_footer_image',
         'signature_image',
         'alternate_mobile',
         'is_verified',

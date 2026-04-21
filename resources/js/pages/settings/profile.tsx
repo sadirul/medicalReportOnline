@@ -32,7 +32,9 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
     const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
         full_name: auth.user.full_name ?? auth.user.name,
+        mobile: auth.user.mobile ?? '',
         email: auth.user.email,
+        address: auth.user.address ?? '',
         logo: null as File | null,
         _method: 'patch',
     });
@@ -71,7 +73,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Profile information" description="Update your name and email address" />
+                    <HeadingSmall title="Profile information" description="Update your contact and clinic profile details" />
 
                     <form onSubmit={submit} className="space-y-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <div className="flex items-center gap-3 border-b border-slate-200/70 pb-4 dark:border-slate-700">
@@ -115,6 +117,41 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             />
 
                             <InputError className="mt-2" message={errors.email} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="mobile">Mobile number</Label>
+
+                            <Input
+                                id="mobile"
+                                type="tel"
+                                className="mt-1 block w-full"
+                                value={data.mobile}
+                                onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                required
+                                maxLength={10}
+                                autoComplete="tel"
+                                placeholder="10 digit mobile number"
+                            />
+
+                            <InputError className="mt-2" message={errors.mobile} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="address">Address</Label>
+
+                            <Input
+                                id="address"
+                                type="text"
+                                className="mt-1 block w-full"
+                                value={data.address}
+                                onChange={(e) => setData('address', e.target.value)}
+                                required
+                                autoComplete="street-address"
+                                placeholder="Clinic address"
+                            />
+
+                            <InputError className="mt-2" message={errors.address} />
                         </div>
 
                         <div className="grid gap-2">
@@ -177,14 +214,6 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             </Transition>
                         </div>
 
-                        {(logoPreview || existingLogo) && (
-                            <div className="border-t border-slate-200 pt-4 dark:border-slate-700">
-                                <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">Current logo</p>
-                                <div className="h-20 w-20 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
-                                    <img src={logoPreview ?? existingLogo ?? ''} alt="Current clinic logo" className="h-full w-full object-cover" />
-                                </div>
-                            </div>
-                        )}
                     </form>
                 </div>
 

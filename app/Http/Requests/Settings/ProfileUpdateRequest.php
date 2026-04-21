@@ -19,7 +19,9 @@ class ProfileUpdateRequest extends FormRequest
 
         $this->merge([
             'full_name' => $this->input('full_name', $user->full_name),
+            'mobile' => $this->input('mobile', $user->mobile),
             'email' => $this->input('email', $user->email),
+            'address' => $this->input('address', $user->address),
         ]);
     }
 
@@ -32,6 +34,11 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'full_name' => ['required', 'string', 'max:255'],
+            'mobile' => [
+                'required',
+                'digits:10',
+                Rule::unique(User::class)->ignore($this->user()->id),
+            ],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
 
             'email' => [
@@ -42,6 +49,7 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'address' => ['required', 'string', 'max:1000'],
         ];
     }
 }

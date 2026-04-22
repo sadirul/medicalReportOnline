@@ -48,6 +48,7 @@ class SmsHelper
 
             $url = 'https://www.fast2sms.com/dev/bulkV2?' . http_build_query($query);
             $response = Http::get($url);
+            Log::info('Fast2SMS send request', ['url' => $url, 'response' => $response->body()]);
 
             $data = $response->json();
 

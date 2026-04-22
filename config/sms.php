@@ -16,8 +16,9 @@ return [
             'phone_id' => env('FAST2SMS_PHONE_ID'),
             'templates' => [
                 'otp' => [
-                    'message_id' => '14428',
+                    'message_id' => '13586',
                 ],
+
             ],
         ],
     ],

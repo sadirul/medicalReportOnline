@@ -15,9 +15,9 @@ class WhatsAppHelper
     public static function send($messageId, $mobileNumber, $variables = [], $mediaUrl = null, $documentFilename = null)
     {
         $params = [
-            'authorization'     => config('services.fast2sms.api_key'),
+            'authorization'     => config('sms.fast2sms.sms.api_key'),
             'message_id'        => $messageId,
-            'phone_number_id'   => config('services.fast2sms.phone_id'),
+            'phone_number_id'   => config('sms.fast2sms.sms.phone_id'),
             'numbers'           => $mobileNumber,
             'variables_values'  => implode('|', $variables),
         ];

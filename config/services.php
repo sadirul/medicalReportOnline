@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'fast2sms' => [
+        'send_sms' => config('sms.fast2sms.sms.send_sms'),
+        'api_key' => env('FAST2SMS_API_KEY'),
+        'phone_id' => env('FAST2SMS_PHONE_ID'),
+        'sender_id' => env('FAST2SMS_SENDER_ID'),
+    ],
+
 ];

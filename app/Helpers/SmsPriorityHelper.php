@@ -71,7 +71,7 @@ class SmsPriorityHelper
                 $documentFilename,
             );
 
-            $firstSuccess = ! empty($firstResult['return']);
+            $firstSuccess = self::channelResponseSucceeded($first, $firstResult);
             self::logFast($phone, $first, $firstSuccess);
 
             if ($firstSuccess) {
@@ -91,7 +91,7 @@ class SmsPriorityHelper
                 $documentFilename,
             );
 
-            $secondSuccess = ! empty($secondResult['return']);
+            $secondSuccess = self::channelResponseSucceeded($second, $secondResult);
             self::logFast($phone, $second, $secondSuccess);
 
             if (! $secondSuccess) {
@@ -153,15 +153,17 @@ class SmsPriorityHelper
                 return ['return' => false, 'error' => 'WhatsAppHelper class not found'];
             }
 
-            return WhatsAppHelper::send(
+            $wa = WhatsAppHelper::send(
                 $messageId['whatsapp'] ?? null,
                 '91'.$phone,
                 is_array($variablesValues['whatsapp'] ?? null)
                     ? $variablesValues['whatsapp']
-                    : explode('|', $variablesValues['whatsapp'] ?? ''),
+                    : explode('|', (string) ($variablesValues['whatsapp'] ?? '')),
                 $mediaUrl,
                 $documentFilename,
             );
+
+            return is_array($wa) ? $wa : ['return' => false, 'error' => 'Invalid WhatsApp API response'];
         } catch (Throwable $e) {
             Log::channel('sms')->error('OTP_CHANNEL_EXCEPTION', [
                 'channel' => $channel,
@@ -182,5 +184,28 @@ class SmsPriorityHelper
             's' => $status,
             't' => now()->timestamp,
         ]);
+    }
+
+    /**
+     * Fast2SMS bulk SMS uses "return"; WhatsApp /dev/whatsapp uses "status" (boolean).
+     *
+     * @param  array<string, mixed>  $result
+     */
+    private static function channelResponseSucceeded(string $channel, array $result): bool
+    {
+        if ($channel === 'whatsapp') {
+            if (array_key_exists('status', $result) && is_bool($result['status'])) {
+                return $result['status'];
+            }
+
+            $status = $result['status'] ?? null;
+            if (is_string($status)) {
+                return in_array(strtolower($status), ['true', '1', 'success'], true);
+            }
+
+            return ! empty($result['return']);
+        }
+
+        return ! empty($result['return']);
     }
 }

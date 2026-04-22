@@ -15,38 +15,42 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register/send-otp', [RegisteredUserController::class, 'sendOtp'])
+        ->middleware('throttle:otp-send')
         ->name('register.otp.send');
 
     Route::get('veryfy-otp', [RegisteredUserController::class, 'showVerifyOtp'])
         ->name('register.otp.verify.page');
 
     Route::post('veryfy-otp', [RegisteredUserController::class, 'verifyOtp'])
+        ->middleware('throttle:otp-verify')
         ->name('register.otp.verify');
 
     Route::post('veryfy-otp/resend', [RegisteredUserController::class, 'resendOtp'])
+        ->middleware('throttle:otp-resend')
         ->name('register.otp.resend');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:login');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:otp-send')
         ->name('password.otp.send');
 
     Route::get('forgot-password/verify-otp', [PasswordResetLinkController::class, 'showVerifyOtp'])
         ->name('password.reset.otp.page');
 
     Route::post('forgot-password/verify-otp', [PasswordResetLinkController::class, 'verifyOtp'])
-        ->middleware('throttle:12,1')
+        ->middleware('throttle:otp-verify')
         ->name('password.reset.otp.verify');
 
     Route::post('forgot-password/resend-otp', [PasswordResetLinkController::class, 'resendOtp'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:otp-resend')
         ->name('password.reset.otp.resend');
 
     Route::get('reset-password', [NewPasswordController::class, 'create'])

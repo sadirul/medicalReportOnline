@@ -1,5 +1,5 @@
 // Components
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -10,20 +10,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { authIcons } from '@/lib/icon-map';
+import { SharedData } from '@/types';
 
 export default function ForgotPassword({ status }: { status?: string }) {
-    const { data, setData, post, processing, errors } = useForm({
-        email: '',
+    const { errors } = usePage<SharedData>().props;
+    const { data, setData, post, processing } = useForm({
+        mobile: '',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('password.email'));
+        post(route('password.otp.send'));
     };
 
     return (
-        <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
+        <AuthLayout title="Forgot password" description="Enter your registered mobile number to receive an OTP">
             <Head title="Forgot password" />
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
@@ -37,32 +39,34 @@ export default function ForgotPassword({ status }: { status?: string }) {
                             </div>
                             <div>
                                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Reset access</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">We will send a reset link to your inbox</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">We will send a one-time code to your mobile</p>
                             </div>
                         </div>
 
                         <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            name="email"
-                            autoComplete="off"
-                            value={data.email}
-                            autoFocus
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@example.com"
-                        />
+                            <Label htmlFor="mobile">Mobile number</Label>
+                            <Input
+                                id="mobile"
+                                type="tel"
+                                name="mobile"
+                                inputMode="numeric"
+                                autoComplete="tel"
+                                value={data.mobile}
+                                autoFocus
+                                maxLength={10}
+                                onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                placeholder="10-digit mobile"
+                            />
 
-                        <InputError message={errors.email} />
-                    </div>
+                            <InputError message={errors.mobile} />
+                        </div>
 
-                    <div className="flex items-center justify-start">
-                        <Button className="w-full" disabled={processing}>
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                            Email password reset link
-                        </Button>
-                    </div>
+                        <div className="flex items-center justify-start">
+                            <Button className="w-full" disabled={processing}>
+                                {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                                Send OTP
+                            </Button>
+                        </div>
                     </div>
                 </form>
 

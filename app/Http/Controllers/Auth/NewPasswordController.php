@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -16,54 +15,74 @@ use Inertia\Response;
 
 class NewPasswordController extends Controller
 {
+    public const SESSION_VERIFIED_USER_ID = 'password_reset_verified_user_id';
+
     /**
-     * Show the password reset page.
+     * Show the password reset page (after OTP verification).
      */
-    public function create(Request $request): Response
+    public function create(Request $request): RedirectResponse|Response
     {
+        $userId = $request->session()->get(self::SESSION_VERIFIED_USER_ID);
+
+        if (! $userId) {
+            return to_route('password.request')->withErrors([
+                'mobile' => __('Please verify your mobile with OTP first.'),
+            ]);
+        }
+
+        /** @var User|null $user */
+        $user = User::query()->find($userId);
+
+        if (! $user || ! $user->is_verified) {
+            $request->session()->forget(self::SESSION_VERIFIED_USER_ID);
+
+            return to_route('password.request');
+        }
+
         return Inertia::render('auth/reset-password', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
+            'mobile' => $user->mobile,
         ]);
     }
 
     /**
-     * Handle an incoming new password request.
+     * Store the new password.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        $userId = $request->session()->get(self::SESSION_VERIFIED_USER_ID);
 
-                event(new PasswordReset($user));
-            }
-        );
-
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        if ($status == Password::PasswordReset) {
-            return to_route('login')->with('status', __($status));
+        if (! $userId) {
+            throw ValidationException::withMessages([
+                'password' => __('Please verify your mobile with OTP first.'),
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
-        ]);
+        /** @var User|null $user */
+        $user = User::query()->find($userId);
+
+        if (! $user || ! $user->is_verified) {
+            $request->session()->forget(self::SESSION_VERIFIED_USER_ID);
+
+            throw ValidationException::withMessages([
+                'password' => __('Session expired. Please start again.'),
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => $request->string('password')->toString(),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        $request->session()->forget(self::SESSION_VERIFIED_USER_ID);
+
+        event(new PasswordReset($user));
+
+        return to_route('login')->with('status', __('Your password has been reset.'));
     }
 }

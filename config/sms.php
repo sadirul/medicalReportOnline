@@ -10,12 +10,6 @@ return [
                 'otp' => [
                     'message_id' => '209141',
                 ],
-                'generate_fee' => [
-                    'message_id' => '209140',
-                ],
-                'fee_paid' => [
-                    'message_id' => '209139',
-                ],
             ],
         ],
         'whatsapp' => [
@@ -23,12 +17,6 @@ return [
             'templates' => [
                 'otp' => [
                     'message_id' => '14428',
-                ],
-                'generate_fee' => [
-                    'message_id' => '14519',
-                ],
-                'fee_paid' => [
-                    'message_id' => '14518',
                 ],
             ],
         ],

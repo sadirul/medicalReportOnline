@@ -10,21 +10,16 @@ import AuthLayout from '@/layouts/auth-layout';
 import { authIcons } from '@/lib/icon-map';
 
 interface ResetPasswordProps {
-    token: string;
-    email: string;
+    mobile: string;
 }
 
 interface ResetPasswordForm {
-    token: string;
-    email: string;
     password: string;
     password_confirmation: string;
 }
 
-export default function ResetPassword({ token, email }: ResetPasswordProps) {
+export default function ResetPassword({ mobile }: ResetPasswordProps) {
     const { data, setData, post, processing, errors, reset } = useForm<ResetPasswordForm>({
-        token: token,
-        email: email,
         password: '',
         password_confirmation: '',
     });
@@ -48,23 +43,8 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         </div>
                         <div>
                             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Create new password</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Set a fresh password for your account</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Account: {mobile}</p>
                         </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            name="email"
-                            autoComplete="email"
-                            value={data.email}
-                            className="mt-1 block w-full"
-                            readOnly
-                            onChange={(e) => setData('email', e.target.value)}
-                        />
-                        <InputError message={errors.email} className="mt-2" />
                     </div>
 
                     <div className="grid gap-2">

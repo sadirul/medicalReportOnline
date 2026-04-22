@@ -18,7 +18,9 @@ use Inertia\Response;
 class RegisteredUserController extends Controller
 {
     private const OTP_SESSION_USER_ID = 'registration_otp_user_id';
+
     private const OTP_EXPIRY_MINUTES = 5;
+
     private const REPLACE_UNVERIFIED_AFTER_MINUTES = 5;
 
     /**
@@ -32,10 +34,13 @@ class RegisteredUserController extends Controller
     /**
      * Save registration data and send OTP.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function sendOtp(Request $request): RedirectResponse
     {
+        $request->session()->forget('password_reset_otp_user_id');
+        $request->session()->forget(NewPasswordController::SESSION_VERIFIED_USER_ID);
+
         $payload = $this->validateRegistrationPayload($request);
 
         $user = User::query()->where('mobile', $payload['mobile'])->first();
@@ -72,7 +77,7 @@ class RegisteredUserController extends Controller
         }
 
         if ($user === null) {
-            $user = new User();
+            $user = new User;
         }
 
         $user->fill([
@@ -136,7 +141,7 @@ class RegisteredUserController extends Controller
     /**
      * Resend OTP for pending registration.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function resendOtp(Request $request): RedirectResponse
     {
@@ -161,7 +166,7 @@ class RegisteredUserController extends Controller
     /**
      * Verify OTP and complete registration.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function verifyOtp(Request $request): RedirectResponse
     {
@@ -231,7 +236,7 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     private function getPendingUserFromSession(Request $request): User
     {

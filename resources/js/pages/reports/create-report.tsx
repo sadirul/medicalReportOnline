@@ -142,6 +142,7 @@ export default function CreateReport({
         interpretation_note: report?.interpretation_note ?? '',
         department_rows: departmentRowsFromReport(report),
     });
+    const reportErrors = errors as Record<string, string | undefined>;
 
     const updateInvestigationRow = (rowIndex: number, investigationIndex: number, key: keyof InvestigationRow, value: string) => {
         const rows = [...data.department_rows];
@@ -170,6 +171,19 @@ export default function CreateReport({
     };
 
     const onInvestigationChange = (rowIndex: number, investigationIndex: number, investigationId: string) => {
+        const isInvestigationUsedInAnotherRow = data.department_rows.some((row, currentRowIndex) =>
+            row.investigations.some(
+                (item, currentInvestigationIndex) =>
+                    !(currentRowIndex === rowIndex && currentInvestigationIndex === investigationIndex) &&
+                    item.investigation_id === investigationId &&
+                    investigationId !== '',
+            ),
+        );
+
+        if (isInvestigationUsedInAnotherRow) {
+            return;
+        }
+
         const selectedInvestigation = investigations.find((investigation) => String(investigation.id) === investigationId);
         const rows = [...data.department_rows];
         const investigationsForRow = [...rows[rowIndex].investigations];
@@ -398,7 +412,17 @@ export default function CreateReport({
                                         {investigations
                                             .filter((investigation) => row.department_id && String(investigation.department_id) === row.department_id)
                                             .map((investigation) => (
-                                                <option key={investigation.id} value={investigation.id}>
+                                                <option
+                                                    key={investigation.id}
+                                                    value={investigation.id}
+                                                    disabled={data.department_rows.some((otherRow, otherRowIndex) =>
+                                                        otherRow.investigations.some(
+                                                            (otherInvestigation, otherInvestigationIndex) =>
+                                                                !(otherRowIndex === rowIndex && otherInvestigationIndex === investigationIndex) &&
+                                                                otherInvestigation.investigation_id === String(investigation.id),
+                                                        ),
+                                                    )}
+                                                >
                                                     {investigation.name}
                                                 </option>
                                             ))}
@@ -449,7 +473,7 @@ export default function CreateReport({
                             </div>
                         </div>
                     ))}
-                    <InputError message={errors.items || errors['items.0.department_id'] || errors['items.0.investigation_id']} />
+                    <InputError message={reportErrors.items || reportErrors['items.0.department_id'] || reportErrors['items.0.investigation_id']} />
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">

@@ -53,7 +53,7 @@
             max-height: 70px;
             object-fit: contain;
             display: inline-block;
-            margin-top: 6px;
+            margin-top: 36px;
         }
 
         .signature-line {
@@ -138,7 +138,7 @@
                     <img src="{{ $qrImage }}" alt="Invoice QR" class="qr-image">
                 @endif
             </div>
-            <div class="qr-caption">Scan to open report PDF</div>
+            <div class="qr-caption">Scan & download report</div>
         </td>
         <td valign="top" style="width: 50%;">
             <div class="signature-box">

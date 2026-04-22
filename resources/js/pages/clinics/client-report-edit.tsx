@@ -87,6 +87,8 @@ export default function ClientReportEdit({
     departments: { id: number; name: string }[];
     investigations: Investigation[];
 }) {
+    const lockNonResultFields = true;
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Incoming report', href: '/clinics/other-clinic/client-report' },
         { title: `Edit #${report.id}`, href: `/clinics/other-clinic/client-report/${report.id}/edit` },
@@ -254,12 +256,12 @@ export default function ClientReportEdit({
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="patient_name">Patient Name</Label>
-                        <Input id="patient_name" value={data.patient_name} onChange={(e) => setData('patient_name', e.target.value)} />
+                        <Input id="patient_name" value={data.patient_name} onChange={(e) => setData('patient_name', e.target.value)} disabled={lockNonResultFields} />
                         <InputError message={errors.patient_name} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="patient_age">Age</Label>
-                        <Input id="patient_age" type="number" min={0} value={data.patient_age} onChange={(e) => setData('patient_age', e.target.value)} />
+                        <Input id="patient_age" type="number" min={0} value={data.patient_age} onChange={(e) => setData('patient_age', e.target.value)} disabled={lockNonResultFields} />
                         <InputError message={errors.patient_age} />
                     </div>
                     <div className="grid gap-2">
@@ -268,6 +270,7 @@ export default function ClientReportEdit({
                             id="patient_sex"
                             value={data.patient_sex}
                             onChange={(e) => setData('patient_sex', e.target.value)}
+                            disabled={lockNonResultFields}
                             className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
                         >
                             <option value="">Select gender</option>
@@ -282,11 +285,11 @@ export default function ClientReportEdit({
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="patient_address">Address</Label>
-                        <Input id="patient_address" value={data.patient_address} onChange={(e) => setData('patient_address', e.target.value)} />
+                        <Input id="patient_address" value={data.patient_address} onChange={(e) => setData('patient_address', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="patient_referred_by">Referred By</Label>
-                        <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} />
+                        <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="patient_whatsapp_number">WhatsApp Number</Label>
@@ -297,6 +300,7 @@ export default function ClientReportEdit({
                             maxLength={10}
                             value={data.patient_whatsapp_number}
                             onChange={(e) => setData('patient_whatsapp_number', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            disabled={lockNonResultFields}
                         />
                     </div>
                 </div>
@@ -304,15 +308,15 @@ export default function ClientReportEdit({
                 <div className="grid gap-3 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="billing_date">Billing Date</Label>
-                        <Input id="billing_date" type="datetime-local" value={data.billing_date} onChange={(e) => setData('billing_date', e.target.value)} />
+                        <Input id="billing_date" type="datetime-local" value={data.billing_date} onChange={(e) => setData('billing_date', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="collection_date">Collection Date</Label>
-                        <Input id="collection_date" type="datetime-local" value={data.collection_date} onChange={(e) => setData('collection_date', e.target.value)} />
+                        <Input id="collection_date" type="datetime-local" value={data.collection_date} onChange={(e) => setData('collection_date', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="report_date">Report Date</Label>
-                        <Input id="report_date" type="datetime-local" value={data.report_date} onChange={(e) => setData('report_date', e.target.value)} />
+                        <Input id="report_date" type="datetime-local" value={data.report_date} onChange={(e) => setData('report_date', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                 </div>
 
@@ -322,7 +326,7 @@ export default function ClientReportEdit({
                             <Building2 className="h-4 w-4" />
                             Departments with tests
                         </h3>
-                        <Button type="button" variant="outline" onClick={addDepartmentRow} className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">
+                        <Button type="button" variant="outline" onClick={addDepartmentRow} disabled={lockNonResultFields} className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add department row
                         </Button>
@@ -335,7 +339,7 @@ export default function ClientReportEdit({
                                         <Building2 className="h-4 w-4" />
                                         Department row
                                     </Label>
-                                    <select value={row.department_id} onChange={(e) => onDepartmentChange(rowIndex, e.target.value)} className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900">
+                                    <select value={row.department_id} onChange={(e) => onDepartmentChange(rowIndex, e.target.value)} disabled={lockNonResultFields} className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900">
                                         <option value="">Select department</option>
                                         {departments.map((department) => (
                                             <option key={department.id} value={department.id}>
@@ -344,14 +348,14 @@ export default function ClientReportEdit({
                                         ))}
                                     </select>
                                 </div>
-                                <Button type="button" variant="outline" onClick={() => removeDepartmentRow(rowIndex)} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
+                                <Button type="button" variant="outline" onClick={() => removeDepartmentRow(rowIndex)} disabled={lockNonResultFields} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Remove department
                                 </Button>
                             </div>
                             {row.investigations.map((investigationRow, investigationIndex) => (
                                 <div key={`${rowIndex}-${investigationIndex}`} className="grid gap-2 md:grid-cols-6">
-                                    <select value={investigationRow.investigation_id} onChange={(e) => onInvestigationChange(rowIndex, investigationIndex, e.target.value)} disabled={!row.department_id} className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900">
+                                    <select value={investigationRow.investigation_id} onChange={(e) => onInvestigationChange(rowIndex, investigationIndex, e.target.value)} disabled={lockNonResultFields || !row.department_id} className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900">
                                         <option value="">{row.department_id ? 'Select test' : 'Select department first'}</option>
                                         {investigations
                                             .filter((investigation) => row.department_id && String(investigation.department_id) === row.department_id)
@@ -361,18 +365,18 @@ export default function ClientReportEdit({
                                                 </option>
                                             ))}
                                     </select>
-                                    <Input value={investigationRow.parameter_name} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'parameter_name', e.target.value)} placeholder="Test name" />
+                                    <Input value={investigationRow.parameter_name} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'parameter_name', e.target.value)} placeholder="Test name" disabled={lockNonResultFields} />
                                     <Input value={investigationRow.value} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'value', e.target.value)} placeholder="Result value" />
-                                    <Input value={investigationRow.unit} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'unit', e.target.value)} placeholder="Unit" />
-                                    <Input value={investigationRow.bio_ref_interval} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'bio_ref_interval', e.target.value)} placeholder="Interval" />
-                                    <Button type="button" variant="outline" onClick={() => removeInvestigationRow(rowIndex, investigationIndex)} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
+                                    <Input value={investigationRow.unit} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'unit', e.target.value)} placeholder="Unit" disabled={lockNonResultFields} />
+                                    <Input value={investigationRow.bio_ref_interval} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'bio_ref_interval', e.target.value)} placeholder="Interval" disabled={lockNonResultFields} />
+                                    <Button type="button" variant="outline" onClick={() => removeInvestigationRow(rowIndex, investigationIndex)} disabled={lockNonResultFields} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         Remove row
                                     </Button>
                                 </div>
                             ))}
                             <div className="flex gap-2">
-                                <Button type="button" variant="outline" onClick={() => addInvestigationUnderDepartment(rowIndex)} disabled={!row.department_id} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
+                                <Button type="button" variant="outline" onClick={() => addInvestigationUnderDepartment(rowIndex)} disabled={lockNonResultFields || !row.department_id} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
                                     <FlaskConical className="mr-2 h-4 w-4" />
                                     Add test row
                                 </Button>

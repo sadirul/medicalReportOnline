@@ -21,8 +21,10 @@ export default function Dashboard({
         released_reports: number;
         unreleased_reports: number;
         pending_sent_reports: number;
+        total_sent_reports: number;
         published_sent_reports: number;
         pending_incoming_reports: number;
+        total_incoming_reports: number;
         published_incoming_reports: number;
     };
     monthlyReports: Array<{
@@ -66,16 +68,23 @@ export default function Dashboard({
 
     const sentReportCards = [
         {
+            title: 'Total sent report',
+            value: stats.total_sent_reports,
+            href: '/clinics/other-clinic/requested-report',
+            icon: FileText,
+            iconClass: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200',
+        },
+        {
             title: 'Pending sent report',
             value: stats.pending_sent_reports,
-            href: '/clinics/other-clinic/requested-report',
+            href: '/clinics/other-clinic/requested-report?status=pending',
             icon: Send,
             iconClass: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
         },
         {
             title: 'Published sent report',
             value: stats.published_sent_reports,
-            href: '/clinics/other-clinic/requested-report',
+            href: '/clinics/other-clinic/requested-report?status=published',
             icon: ShieldCheck,
             iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
         },
@@ -83,16 +92,23 @@ export default function Dashboard({
 
     const incomingReportCards = [
         {
+            title: 'Total incoming report',
+            value: stats.total_incoming_reports,
+            href: '/clinics/other-clinic/client-report',
+            icon: Inbox,
+            iconClass: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200',
+        },
+        {
             title: 'Pending incoming report',
             value: stats.pending_incoming_reports,
-            href: '/clinics/other-clinic/client-report',
+            href: '/clinics/other-clinic/client-report?status=pending',
             icon: Inbox,
             iconClass: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
         },
         {
             title: 'Published incoming report',
             value: stats.published_incoming_reports,
-            href: '/clinics/other-clinic/client-report',
+            href: '/clinics/other-clinic/client-report?status=published',
             icon: ShieldCheck,
             iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
         },
@@ -122,7 +138,7 @@ export default function Dashboard({
                 </div>
 
                 <h3 className="mt-2 text-base font-semibold text-slate-800 dark:text-slate-100">Other Clinic Sent Report Overview</h3>
-                <div className="grid auto-rows-min gap-4 md:grid-cols-2">
+                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     {sentReportCards.map((card) => (
                         <Link
                             key={card.title}
@@ -141,7 +157,7 @@ export default function Dashboard({
                 </div>
 
                 <h3 className="mt-2 text-base font-semibold text-slate-800 dark:text-slate-100">Incoming Report Overview</h3>
-                <div className="grid auto-rows-min gap-4 md:grid-cols-2">
+                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     {incomingReportCards.map((card) => (
                         <Link
                             key={card.title}

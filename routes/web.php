@@ -52,6 +52,9 @@ Route::middleware(['auth'])->group(function () {
                     ->where('sender_user_id', $user->id)
                     ->whereIn('status', ['sent', 'received'])
                     ->count(),
+                'total_sent_reports' => SharedReport::query()
+                    ->where('sender_user_id', $user->id)
+                    ->count(),
                 'published_sent_reports' => SharedReport::query()
                     ->where('sender_user_id', $user->id)
                     ->where('status', 'published')
@@ -59,6 +62,9 @@ Route::middleware(['auth'])->group(function () {
                 'pending_incoming_reports' => SharedReport::query()
                     ->where('receiver_user_id', $user->id)
                     ->whereIn('status', ['sent', 'received'])
+                    ->count(),
+                'total_incoming_reports' => SharedReport::query()
+                    ->where('receiver_user_id', $user->id)
                     ->count(),
                 'published_incoming_reports' => SharedReport::query()
                     ->where('receiver_user_id', $user->id)

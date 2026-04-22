@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 
 interface LoginForm {
-    email: string;
+    mobile: string;
     password: string;
     remember: boolean;
 }
@@ -23,7 +23,7 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
-        email: '',
+        mobile: '',
         password: '',
         remember: false,
     });
@@ -36,7 +36,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
+        <AuthLayout title="Log in to your account" description="Enter your mobile number and password below to log in">
             <Head title="Log in" />
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
@@ -48,19 +48,19 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
+                        <Label htmlFor="mobile">Mobile number</Label>
                         <Input
-                            id="email"
-                            type="email"
+                            id="mobile"
+                            type="tel"
                             required
                             autoFocus
                             tabIndex={1}
-                            autoComplete="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@example.com"
+                            autoComplete="tel"
+                            value={data.mobile}
+                            onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            placeholder="10 digit mobile number"
                         />
-                        <InputError message={errors.email} />
+                        <InputError message={errors.mobile} />
                     </div>
 
                     <div className="grid gap-2">
@@ -86,7 +86,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" tabIndex={3} />
+                        <Checkbox id="remember" name="remember" tabIndex={3} checked={data.remember} onCheckedChange={(checked) => setData('remember', checked === true)} />
                         <Label htmlFor="remember">Remember me</Label>
                     </div>
 

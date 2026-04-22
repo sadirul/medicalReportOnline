@@ -36,6 +36,7 @@ export interface SharedData {
 export interface User {
     id: number;
     uuid: string;
+    unique_clinic_id?: string | null;
     name: string;
     full_name: string;
     clinic_name: string;

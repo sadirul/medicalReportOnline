@@ -28,6 +28,18 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+    {
+        title: 'Other clinic',
+        url: '/clinics',
+        icon: appNavIcons.allReports,
+        items: [
+            {
+                title: 'Add clinic',
+                url: '/clinics/other-clinic',
+                icon: appNavIcons.createReport,
+            },
+        ],
+    },
 ];
 
 const reportsNavItems: NavItem[] = [

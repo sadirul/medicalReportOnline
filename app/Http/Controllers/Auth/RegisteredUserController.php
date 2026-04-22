@@ -81,6 +81,7 @@ class RegisteredUserController extends Controller
         }
 
         $user->fill([
+            'unique_clinic_id' => $user->unique_clinic_id ?: User::generateUniqueClinicId(),
             'full_name' => $payload['full_name'],
             'clinic_name' => $payload['clinic_name'],
             'mobile' => $payload['mobile'],

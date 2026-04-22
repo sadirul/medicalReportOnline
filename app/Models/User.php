@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -21,6 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'uuid',
+        'unique_clinic_id',
         'full_name',
         'clinic_name',
         'mobile',
@@ -78,7 +80,21 @@ class User extends Authenticatable
             if (blank($user->uuid)) {
                 $user->uuid = (string) Str::uuid();
             }
+
+            if (blank($user->unique_clinic_id)) {
+                $user->unique_clinic_id = self::generateUniqueClinicId();
+            }
         });
+    }
+
+    public static function generateUniqueClinicId(): string
+    {
+        do {
+            $code = 'MML'.Str::upper(Str::random(10));
+            $exists = self::query()->where('unique_clinic_id', $code)->exists();
+        } while ($exists);
+
+        return $code;
     }
 
     public function getNameAttribute(): ?string
@@ -104,5 +120,15 @@ class User extends Authenticatable
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function initiatedClinicConnections(): HasMany
+    {
+        return $this->hasMany(\App\Models\ClinicConnection::class, 'clinic_user_id');
+    }
+
+    public function receivedClinicConnections(): HasMany
+    {
+        return $this->hasMany(\App\Models\ClinicConnection::class, 'connected_clinic_user_id');
     }
 }

@@ -42,7 +42,11 @@ class RegistrationTest extends TestCase
             'otp' => '123456',
         ]);
 
+        $user->refresh();
+
         $this->assertAuthenticated();
         $verifyResponse->assertRedirect(route('dashboard', absolute: false));
+        $this->assertNotNull($user->unique_clinic_id);
+        $this->assertTrue(str_starts_with($user->unique_clinic_id, 'MML'));
     }
 }

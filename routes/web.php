@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ClinicConnectionController;
+use App\Http\Controllers\SharedReportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
 use Carbon\Carbon;
@@ -62,6 +63,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('clinics/other-clinic', [ClinicConnectionController::class, 'index'])->name('clinics.other.index');
     Route::post('clinics/other-clinic/connect', [ClinicConnectionController::class, 'store'])->name('clinics.other.connect');
+    Route::get('clinics/other-clinic/sent-report/create', [SharedReportController::class, 'createSentReport'])->name('clinics.sent.create');
+    Route::post('clinics/other-clinic/sent-report', [SharedReportController::class, 'storeSentReport'])->name('clinics.sent.store');
+    Route::get('clinics/other-clinic/catalog/{receiver}', [SharedReportController::class, 'fetchReceiverCatalog'])->name('clinics.sent.catalog');
+    Route::get('clinics/other-clinic/requested-report', [SharedReportController::class, 'requestedIndex'])->name('clinics.requested.index');
+    Route::get('clinics/other-clinic/client-report', [SharedReportController::class, 'clientIndex'])->name('clinics.client.index');
+    Route::get('clinics/other-clinic/client-report/{sharedReport}/edit', [SharedReportController::class, 'editClientReport'])->name('clinics.client.edit');
+    Route::patch('clinics/other-clinic/client-report/{sharedReport}', [SharedReportController::class, 'updateClientReport'])->name('clinics.client.update');
+    Route::post('clinics/other-clinic/client-report/{sharedReport}/publish', [SharedReportController::class, 'publishClientReport'])->name('clinics.client.publish');
+    Route::get('clinics/other-clinic/shared-report/{sharedReport:uuid}/pdf', [SharedReportController::class, 'downloadPdf'])->name('clinics.shared.pdf');
 
     Route::get('reports/create-report', [ReportController::class, 'create'])->name('reports.create');
     Route::post('reports', [ReportController::class, 'store'])->name('reports.store');

@@ -5,7 +5,6 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -130,5 +129,15 @@ class User extends Authenticatable
     public function receivedClinicConnections(): HasMany
     {
         return $this->hasMany(\App\Models\ClinicConnection::class, 'connected_clinic_user_id');
+    }
+
+    public function sentSharedReports(): HasMany
+    {
+        return $this->hasMany(\App\Models\SharedReport::class, 'sender_user_id');
+    }
+
+    public function receivedSharedReports(): HasMany
+    {
+        return $this->hasMany(\App\Models\SharedReport::class, 'receiver_user_id');
     }
 }

@@ -68,10 +68,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('clinics/other-clinic/catalog/{receiver}', [SharedReportController::class, 'fetchReceiverCatalog'])->name('clinics.sent.catalog');
     Route::get('clinics/other-clinic/requested-report', [SharedReportController::class, 'requestedIndex'])->name('clinics.requested.index');
     Route::get('clinics/other-clinic/client-report', [SharedReportController::class, 'clientIndex'])->name('clinics.client.index');
+    Route::get('clinics/other-clinic/client-report/{sharedReport}', [SharedReportController::class, 'showClientReport'])->name('clinics.client.show');
     Route::get('clinics/other-clinic/client-report/{sharedReport}/edit', [SharedReportController::class, 'editClientReport'])->name('clinics.client.edit');
     Route::patch('clinics/other-clinic/client-report/{sharedReport}', [SharedReportController::class, 'updateClientReport'])->name('clinics.client.update');
     Route::post('clinics/other-clinic/client-report/{sharedReport}/publish', [SharedReportController::class, 'publishClientReport'])->name('clinics.client.publish');
     Route::get('clinics/other-clinic/shared-report/{sharedReport:uuid}/pdf', [SharedReportController::class, 'downloadPdf'])->name('clinics.shared.pdf');
+    Route::get('clinics/other-clinic/shared-report/{sharedReport:uuid}/bill', [SharedReportController::class, 'downloadBill'])->name('clinics.shared.bill');
 
     Route::get('reports/create-report', [ReportController::class, 'create'])->name('reports.create');
     Route::post('reports', [ReportController::class, 'store'])->name('reports.store');

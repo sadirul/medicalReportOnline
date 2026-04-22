@@ -49,7 +49,7 @@ const mainNavItems: NavItem[] = [
                 icon: appNavIcons.allReports,
             },
             {
-                title: 'Client report',
+                title: 'Incoming report',
                 url: '/clinics/other-clinic/client-report',
                 icon: appNavIcons.allReports,
             },

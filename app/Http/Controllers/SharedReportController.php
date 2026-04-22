@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -198,6 +199,24 @@ class SharedReportController extends Controller
         ]);
     }
 
+    public function showClientReport(Request $request, SharedReport $sharedReport): Response
+    {
+        abort_unless($sharedReport->receiver_user_id === $request->user()->id, 403);
+
+        if ($sharedReport->status === 'sent') {
+            $sharedReport->update([
+                'status' => 'received',
+                'received_at' => now(),
+            ]);
+        }
+
+        $sharedReport->load(['items.investigation.department', 'sender:id,clinic_name,full_name']);
+
+        return Inertia::render('clinics/client-report-show', [
+            'report' => $sharedReport,
+        ]);
+    }
+
     public function updateClientReport(Request $request, SharedReport $sharedReport): RedirectResponse
     {
         abort_unless($sharedReport->receiver_user_id === $request->user()->id, 403);
@@ -271,7 +290,7 @@ class SharedReportController extends Controller
             ]);
         }
 
-        return back()->with('status', 'Client report saved successfully.');
+        return to_route('clinics.client.index')->with('status', 'Client report saved successfully.');
     }
 
     public function publishClientReport(Request $request, SharedReport $sharedReport): RedirectResponse
@@ -337,6 +356,41 @@ class SharedReportController extends Controller
         return $pdf->stream('report-'.$sharedReport->uuid.'.pdf');
     }
 
+    public function downloadBill(Request $request, SharedReport $sharedReport): HttpResponse
+    {
+        abort_unless(
+            $sharedReport->sender_user_id === $request->user()->id || $sharedReport->receiver_user_id === $request->user()->id,
+            403
+        );
+
+        $sharedReport->load(['items.investigation', 'receiver']);
+        $clinic = $sharedReport->receiver;
+
+        $lineItems = $sharedReport->items->map(function ($item) {
+            $amount = (float) ($item->amount ?? 0);
+
+            return [
+                'name' => $item->parameter_name,
+                'unit' => $item->unit,
+                'amount' => $amount,
+            ];
+        })->values();
+
+        $subTotal = $lineItems->sum('amount');
+        $qrPayload = route('clinics.shared.pdf', ['sharedReport' => $sharedReport->uuid]);
+
+        $pdf = Pdf::loadView('pdf.bill', [
+            'report' => $sharedReport,
+            'clinic' => $clinic,
+            'lineItems' => $lineItems,
+            'subTotal' => $subTotal,
+            'signatureImage' => $this->toDataUri($clinic->signature_image),
+            'qrImage' => $this->generateQrDataUri($qrPayload),
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('bill-'.$sharedReport->uuid.'.pdf');
+    }
+
     private function connectedClinics(User $user)
     {
         $userId = (int) $user->id;
@@ -384,5 +438,17 @@ class SharedReportController extends Controller
         }
 
         return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
+    }
+
+    private function generateQrDataUri(string $payload): ?string
+    {
+        $url = 'https://api.qrserver.com/v1/create-qr-code/?size=96x96&data='.rawurlencode($payload);
+        $response = Http::timeout(10)->get($url);
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        return sprintf('data:image/png;base64,%s', base64_encode($response->body()));
     }
 }

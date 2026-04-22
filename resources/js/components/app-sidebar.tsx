@@ -14,44 +14,17 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Departments',
         url: '/departments/all-department',
-        icon: appNavIcons.createReport,
+        icon: appNavIcons.departments,
         items: [
             {
                 title: 'Create department',
                 url: '/departments/create-department',
-                icon: appNavIcons.createReport,
+                icon: appNavIcons.departments,
             },
             {
                 title: 'All department',
                 url: '/departments/all-department',
-                icon: appNavIcons.allReports,
-            },
-        ],
-    },
-    {
-        title: 'Other clinic',
-        url: '/clinics',
-        icon: appNavIcons.allReports,
-        items: [
-            {
-                title: 'Add clinic',
-                url: '/clinics/other-clinic',
-                icon: appNavIcons.createReport,
-            },
-            {
-                title: 'Sent report',
-                url: '/clinics/other-clinic/sent-report/create',
-                icon: appNavIcons.createReport,
-            },
-            {
-                title: 'Requested report',
-                url: '/clinics/other-clinic/requested-report',
-                icon: appNavIcons.allReports,
-            },
-            {
-                title: 'Incoming report',
-                url: '/clinics/other-clinic/client-report',
-                icon: appNavIcons.allReports,
+                icon: appNavIcons.departments,
             },
         ],
     },
@@ -59,7 +32,7 @@ const mainNavItems: NavItem[] = [
 
 const reportsNavItems: NavItem[] = [
     {
-        title: 'Reports',
+        title: 'My Clinic',
         url: '/reports',
         icon: appNavIcons.allReports,
         items: [
@@ -74,6 +47,36 @@ const reportsNavItems: NavItem[] = [
                 icon: appNavIcons.allReports,
             },
         ],
+    },
+];
+
+const otherClinicNavItems: NavItem[] = [
+    {
+        title: 'Other clinic',
+        url: '/clinics',
+        icon: appNavIcons.otherClinic,
+        items: [
+            {
+                title: 'Add clinic',
+                url: '/clinics/other-clinic',
+                icon: appNavIcons.otherClinic,
+            },
+            {
+                title: 'Sent report',
+                url: '/clinics/other-clinic/sent-report/create',
+                icon: appNavIcons.sentReport,
+            },
+            {
+                title: 'Requested report',
+                url: '/clinics/other-clinic/requested-report',
+                icon: appNavIcons.allReports,
+            },
+        ],
+    },
+    {
+        title: 'Incoming report',
+        url: '/clinics/other-clinic/client-report',
+        icon: appNavIcons.incomingReport,
     },
 ];
 
@@ -94,7 +97,8 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} label="Platform" />
-                <NavMain items={reportsNavItems} label="Reports" />
+                <NavMain items={reportsNavItems} label="My Clinic" />
+                <NavMain items={otherClinicNavItems} label="Other Clinic" />
             </SidebarContent>
         </Sidebar>
     );

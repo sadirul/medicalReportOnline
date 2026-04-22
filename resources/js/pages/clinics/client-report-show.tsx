@@ -55,6 +55,9 @@ export default function ClientReportShow({ report }: { report: SharedReport }) {
         return acc;
     }, {});
 
+    const displayStatus = report.status === 'published' ? 'Published' : report.status === 'sent' || report.status === 'received' ? 'Pending' : report.status;
+    const statusClass = report.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Client report #${report.id}`} />
@@ -100,7 +103,7 @@ export default function ClientReportShow({ report }: { report: SharedReport }) {
                     </p>
                     <p>
                         <strong>Status:</strong>{' '}
-                        <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700">{report.status}</span>
+                        <span className={`rounded px-2 py-1 text-xs ${statusClass}`}>{displayStatus}</span>
                     </p>
                     <p>
                         <strong>Age/Sex:</strong> {report.patient_age} Y / {report.patient_sex}

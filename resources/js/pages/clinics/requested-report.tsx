@@ -25,12 +25,23 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusStyle: Record<string, string> = {
-    sent: 'bg-amber-100 text-amber-700',
-    received: 'bg-blue-100 text-blue-700',
+    pending: 'bg-amber-100 text-amber-700',
     published: 'bg-emerald-100 text-emerald-700',
 };
 
-const formatStatus = (status: string) => (status ? status.charAt(0).toUpperCase() + status.slice(1) : status);
+const displayStatus = (status: string) => {
+    if (status === 'published') {
+        return 'Published';
+    }
+
+    if (status === 'sent' || status === 'received') {
+        return 'Pending';
+    }
+
+    return status ? status.charAt(0).toUpperCase() + status.slice(1) : status;
+};
+
+const statusKey = (status: string) => (status === 'published' ? 'published' : 'pending');
 
 export default function RequestedReport({ reports }: { reports: RequestedReportRow[] }) {
     return (
@@ -70,8 +81,8 @@ export default function RequestedReport({ reports }: { reports: RequestedReportR
                                     <td className="py-2">{report.patient_name}</td>
                                     <td className="py-2">{report.sent_at ? formatDateTimeInKolkata(report.sent_at) : '-'}</td>
                                     <td className="py-2">
-                                        <span className={`rounded px-2 py-1 text-xs ${statusStyle[report.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                                            {formatStatus(report.status)}
+                                        <span className={`rounded px-2 py-1 text-xs ${statusStyle[statusKey(report.status)] ?? 'bg-slate-100 text-slate-700'}`}>
+                                            {displayStatus(report.status)}
                                         </span>
                                     </td>
                                     <td className="py-2">
@@ -89,7 +100,7 @@ export default function RequestedReport({ reports }: { reports: RequestedReportR
                                                     </a>
                                                 </Button>
                                             ) : (
-                                                <span className="text-xs text-slate-500">Pending publish</span>
+                                                <span className="text-xs text-slate-500"></span>
                                             )}
                                             <Button size="sm" variant="outline" asChild>
                                                 <a

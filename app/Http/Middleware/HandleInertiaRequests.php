@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'flash' => [
                 'status' => $request->session()->get('status'),
+                'status_type' => $request->session()->get('status_type'),
                 'otp_sent' => $request->session()->get('otp_sent', false),
             ],
             'auth' => [

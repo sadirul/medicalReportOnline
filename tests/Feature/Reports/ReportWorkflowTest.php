@@ -490,6 +490,32 @@ class ReportWorkflowTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_cannot_send_whatsapp_when_sms_balance_is_zero(): void
+    {
+        $owner = User::factory()->create([
+            'sms_balance' => 0,
+        ]);
+
+        $report = Report::query()->create([
+            'user_id' => $owner->id,
+            'patient_name' => 'Patient',
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'publication_status' => 'released',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'patient_whatsapp_number' => '9876543210',
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('reports.send-whatsapp', $report))
+            ->assertSessionHas('status', 'You dont have SMS balance to send.')
+            ->assertSessionHas('status_type', 'error');
+    }
+
     public function test_can_send_whatsapp_for_released_report_with_header_footer_url(): void
     {
         Http::fake([
@@ -498,6 +524,7 @@ class ReportWorkflowTest extends TestCase
 
         $owner = User::factory()->create([
             'report_header_image' => 'report-assets/header.png',
+            'sms_balance' => 2,
         ]);
         $report = Report::query()->create([
             'user_id' => $owner->id,
@@ -517,6 +544,8 @@ class ReportWorkflowTest extends TestCase
         $this->actingAs($owner)
             ->post(route('reports.send-whatsapp', $report))
             ->assertSessionHas('status', 'Report sent to WhatsApp successfully.');
+
+        $this->assertSame(1, $owner->fresh()->sms_balance);
 
         Http::assertSent(function ($request) use ($report): bool {
             $query = [];

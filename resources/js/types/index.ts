@@ -28,6 +28,7 @@ export interface SharedData {
     auth: Auth;
     flash: {
         status?: string;
+        status_type?: 'success' | 'error' | string;
         otp_sent?: boolean;
     };
     [key: string]: unknown;
@@ -46,6 +47,7 @@ export interface User {
     report_header_image?: string | null;
     report_footer_image?: string | null;
     signature_image?: string | null;
+    sms_balance?: number;
     alternate_mobile?: string | null;
     is_verified?: boolean;
     email: string;

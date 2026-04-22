@@ -1,10 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import { formatDateTimeInKolkata } from '@/lib/date-time';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect } from 'react';
 import { Printer, ReceiptText } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -34,6 +35,8 @@ export default function AllReport({
     reports: ReportRow[];
     filters: { patient_name: string; patient_address: string; from_date: string; to_date: string; status: string };
 }) {
+    const page = usePage<SharedData>();
+    const { flash } = page.props;
     const filterForm = useForm({
         patient_name: filters.patient_name || '',
         patient_address: filters.patient_address || '',
@@ -50,6 +53,32 @@ export default function AllReport({
             replace: true,
         });
     };
+
+    useEffect(() => {
+        if (!flash?.status || flash.status.trim() === '') {
+            return;
+        }
+
+        toast.dismiss('report-status');
+        toast.custom(
+            (t) => (
+                <button
+                    type="button"
+                    onClick={() => toast.dismiss(t.id)}
+                    className={`cursor-pointer rounded-md px-4 py-2 text-left text-sm font-medium text-white shadow-lg transition-all duration-300 ${
+                        t.visible ? 'translate-x-0 opacity-100' : 'translate-x-6 opacity-0'
+                    } ${flash.status_type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
+                >
+                    {flash.status}
+                </button>
+            ),
+            {
+                id: 'report-status',
+                duration: 4000,
+                position: 'top-right',
+            },
+        );
+    }, [page.props.flash, flash?.status, flash?.status_type]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -215,13 +244,6 @@ export default function AllReport({
                                             <Button size="sm" variant="outline" asChild>
                                                 <Link href={route('reports.show', report.id)}>View</Link>
                                             </Button>
-                                            {report.publication_status === 'released' && !!report.patient_whatsapp_number && (
-                                                <Button size="sm" variant="outline" asChild>
-                                                    <Link href={route('reports.send-whatsapp', report.id)} method="post" as="button">
-                                                        Send to WhatsApp
-                                                    </Link>
-                                                </Button>
-                                            )}
                                             <Button size="sm" asChild>
                                                 <a
                                                     href={report.uuid ? route('reports.pdf', { report: report.uuid }) : '#'}
@@ -249,6 +271,25 @@ export default function AllReport({
                                                     Invoice
                                                 </a>
                                             </Button>
+                                            {report.publication_status === 'released' && !!report.patient_whatsapp_number && (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-[#25D366] text-white hover:bg-[#1fbe5a] dark:bg-[#25D366] dark:text-white dark:hover:bg-[#1fbe5a]"
+                                                    asChild
+                                                >
+                                                    <Link href={route('reports.send-whatsapp', report.id)} method="post" as="button">
+                                                        <span className="mr-1">Send to</span>
+                                                        <svg
+                                                            viewBox="0 0 32 32"
+                                                            className="h-4 w-4 fill-current"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <path d="M19.11 17.21c-.27-.14-1.58-.78-1.82-.87-.24-.09-.41-.14-.58.14-.17.27-.67.87-.82 1.05-.15.18-.3.2-.57.07-.27-.14-1.12-.41-2.14-1.31-.79-.7-1.32-1.57-1.48-1.84-.15-.27-.02-.41.11-.54.12-.12.27-.3.41-.45.14-.15.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.58-1.41-.8-1.93-.21-.5-.43-.43-.58-.44h-.49c-.17 0-.45.07-.68.34-.24.27-.9.88-.9 2.14s.92 2.48 1.05 2.65c.14.18 1.81 2.76 4.38 3.87.61.26 1.09.41 1.46.52.62.2 1.18.17 1.63.1.5-.07 1.58-.65 1.8-1.28.22-.63.22-1.17.15-1.28-.06-.1-.24-.17-.51-.31z" />
+                                                            <path d="M16 .47C7.42.47.47 7.42.47 16c0 2.82.76 5.57 2.2 7.98L.3 31.7l7.9-2.33A15.43 15.43 0 0 0 16 31.53c8.58 0 15.53-6.95 15.53-15.53C31.53 7.42 24.58.47 16 .47zm0 28.44c-2.47 0-4.88-.66-6.98-1.92l-.5-.3-4.69 1.38 1.39-4.57-.32-.53A12.82 12.82 0 0 1 3.08 16C3.08 8.87 8.87 3.08 16 3.08S28.92 8.87 28.92 16 23.13 28.91 16 28.91z" />
+                                                        </svg>
+                                                    </Link>
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

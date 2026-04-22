@@ -32,6 +32,7 @@ class User extends Authenticatable
         'report_header_image',
         'report_footer_image',
         'signature_image',
+        'sms_balance',
         'alternate_mobile',
         'is_verified',
         'otp_hash',
@@ -69,6 +70,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_verified' => 'boolean',
+            'sms_balance' => 'integer',
             'otp_expires_at' => 'datetime',
         ];
     }

@@ -6,6 +6,7 @@ use App\Helpers\WhatsAppHelper;
 use App\Http\Requests\StoreReportRequest;
 use App\Models\Investigation;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -295,16 +296,44 @@ class ReportController extends Controller
         abort_unless($report->user_id === $request->user()->id, 403);
 
         if ($report->publication_status !== 'released') {
-            return back()->with('status', 'Only released reports can be sent to WhatsApp.');
+            return back()->with([
+                'status' => 'Only released reports can be sent to WhatsApp.',
+                'status_type' => 'error',
+            ]);
         }
 
         $patientWhatsAppNumber = (string) ($report->patient_whatsapp_number ?? '');
         if (! preg_match('/^\d{10}$/', $patientWhatsAppNumber)) {
-            return back()->with('status', 'Patient WhatsApp number must be exactly 10 digits.');
+            return back()->with([
+                'status' => 'Patient WhatsApp number must be exactly 10 digits.',
+                'status_type' => 'error',
+            ]);
         }
 
         if (! $report->uuid) {
             $report->forceFill(['uuid' => (string) Str::uuid()])->save();
+        }
+
+        $balanceReserved = DB::transaction(function () use ($request): bool {
+            $lockedUser = User::query()
+                ->whereKey($request->user()->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $lockedUser || $lockedUser->sms_balance <= 0) {
+                return false;
+            }
+
+            $lockedUser->decrement('sms_balance', 1);
+
+            return true;
+        });
+
+        if (! $balanceReserved) {
+            return back()->with([
+                'status' => "You dont have SMS balance to send.",
+                'status_type' => 'error',
+            ]);
         }
 
         $hasUploadedHeaderFooterAssets = ! empty($request->user()->report_header_image)
@@ -325,16 +354,24 @@ class ReportController extends Controller
         $success = (bool) ($response['status'] ?? $response['return'] ?? false);
 
         if (! $success) {
+            User::query()->whereKey($request->user()->id)->increment('sms_balance', 1);
+
             Log::warning('Failed sending report via WhatsApp.', [
                 'report_id' => $report->id,
                 'mobile' => $patientWhatsAppNumber,
                 'response' => $response,
             ]);
 
-            return back()->with('status', 'Failed to send report to WhatsApp. Please try again.');
+            return back()->with([
+                'status' => 'Failed to send report to WhatsApp. Please try again.',
+                'status_type' => 'error',
+            ]);
         }
 
-        return back()->with('status', 'Report sent to WhatsApp successfully.');
+        return back()->with([
+            'status' => 'Report sent to WhatsApp successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function show(Request $request, Report $report): Response

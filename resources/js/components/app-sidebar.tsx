@@ -1,8 +1,17 @@
 import { NavMain } from '@/components/nav-main';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
 import { appNavIcons } from '@/lib/icon-map';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { IndianRupee } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -81,6 +90,9 @@ const otherClinicNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const smsBalance = Number(auth?.user?.sms_balance ?? 0);
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -100,6 +112,12 @@ export function AppSidebar() {
                 <NavMain items={reportsNavItems} label="My Clinic" />
                 <NavMain items={otherClinicNavItems} label="Other Clinic" />
             </SidebarContent>
+            <SidebarFooter>
+                <div className="flex items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-accent px-2 py-2 text-sidebar-accent-foreground">
+                    <IndianRupee className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-medium group-data-[collapsible=icon]:hidden">SMS Balance: {smsBalance}</span>
+                </div>
+            </SidebarFooter>
         </Sidebar>
     );
 }

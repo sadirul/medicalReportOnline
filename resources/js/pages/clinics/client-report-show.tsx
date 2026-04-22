@@ -106,7 +106,7 @@ export default function ClientReportShow({ report }: { report: SharedReport }) {
                         <span className={`rounded px-2 py-1 text-xs ${statusClass}`}>{displayStatus}</span>
                     </p>
                     <p>
-                        <strong>Age/Sex:</strong> {report.patient_age} Y / {report.patient_sex}
+                        <strong>Age/Gender:</strong> {report.patient_age} Y / {report.patient_sex}
                     </p>
                     <p>
                         <strong>Billing Date:</strong> {formatDateTimeInKolkata(report.billing_date)}

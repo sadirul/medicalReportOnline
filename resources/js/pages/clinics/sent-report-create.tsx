@@ -280,14 +280,14 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                         <InputError message={errors.patient_age} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="patient_sex">Sex</Label>
+                        <Label htmlFor="patient_sex">Gender</Label>
                         <select
                             id="patient_sex"
                             value={data.patient_sex}
                             onChange={(e) => setData('patient_sex', e.target.value)}
                             className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
                         >
-                            <option value="">Select sex</option>
+                            <option value="">Select gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>

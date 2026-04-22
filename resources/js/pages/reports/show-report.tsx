@@ -133,7 +133,7 @@ export default function ShowReport({ report }: { report: Report }) {
                         )}
                     </p>
                     <p>
-                        <strong>Age/Sex:</strong> {report.patient_age} Y / {report.patient_sex}
+                        <strong>Age/Gender:</strong> {report.patient_age} Y / {report.patient_sex}
                     </p>
                     <p>
                         <strong>Billing Date:</strong> {formatDateTimeInKolkata(report.billing_date)}

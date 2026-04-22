@@ -113,7 +113,7 @@ export default function Patients({ patients }: { patients: Patient[] }) {
                             <InputError message={errors.age} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="sex">Sex</Label>
+                            <Label htmlFor="sex">Gender</Label>
                             <Input id="sex" value={data.sex} onChange={(e) => setData('sex', e.target.value)} required />
                             <InputError message={errors.sex} />
                         </div>
@@ -151,7 +151,7 @@ export default function Patients({ patients }: { patients: Patient[] }) {
                                 <tr className="text-left text-slate-500">
                                     <th className="py-2">Patient Name</th>
                                     <th className="py-2">V.Id</th>
-                                    <th className="py-2">Age/Sex</th>
+                                    <th className="py-2">Age/Gender</th>
                                     <th className="py-2">Action</th>
                                 </tr>
                             </thead>

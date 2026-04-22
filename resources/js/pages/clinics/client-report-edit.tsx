@@ -88,7 +88,7 @@ export default function ClientReportEdit({
     investigations: Investigation[];
 }) {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Client report', href: '/clinics/other-clinic/client-report' },
+        { title: 'Incoming report', href: '/clinics/other-clinic/client-report' },
         { title: `Edit #${report.id}`, href: `/clinics/other-clinic/client-report/${report.id}/edit` },
     ];
 
@@ -237,15 +237,17 @@ export default function ClientReportEdit({
                         <Button type="button" variant="outline" asChild>
                             <Link href={route('clinics.client.index')}>Back</Link>
                         </Button>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            asChild
-                        >
-                            <Link href={route('clinics.client.publish', report.id)} method="post" as="button">
-                                Publish
-                            </Link>
-                        </Button>
+                        {report.status !== 'published' && (
+                            <Button
+                                type="button"
+                                className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                                asChild
+                            >
+                                <Link href={route('clinics.client.publish', report.id)} method="post" as="button">
+                                    Publish
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
 

@@ -42,7 +42,7 @@ type SharedReport = {
 
 export default function ClientReportShow({ report }: { report: SharedReport }) {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Client report', href: '/clinics/other-clinic/client-report' },
+        { title: 'Incoming report', href: '/clinics/other-clinic/client-report' },
         { title: `Report #${report.id}`, href: `/clinics/other-clinic/client-report/${report.id}` },
     ];
 

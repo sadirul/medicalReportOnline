@@ -27,7 +27,7 @@ type ConnectedClinicOption = {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Client report',
+        title: 'Incoming report',
         href: '/clinics/other-clinic/client-report',
     },
 ];

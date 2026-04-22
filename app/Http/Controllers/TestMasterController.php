@@ -32,7 +32,10 @@ class TestMasterController extends Controller
 
         $request->user()->testMasters()->create($payload);
 
-        return back()->with('status', 'Test master added successfully.');
+        return back()->with([
+            'status' => 'Test master added successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function update(StoreTestMasterRequest $request, TestMaster $testMaster): RedirectResponse
@@ -45,6 +48,9 @@ class TestMasterController extends Controller
 
         $testMaster->update($payload);
 
-        return back()->with('status', 'Test master updated successfully.');
+        return back()->with([
+            'status' => 'Test master updated successfully.',
+            'status_type' => 'success',
+        ]);
     }
 }

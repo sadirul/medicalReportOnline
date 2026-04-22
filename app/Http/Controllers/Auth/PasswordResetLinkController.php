@@ -73,7 +73,10 @@ class PasswordResetLinkController extends Controller
         $request->session()->put(self::OTP_SESSION_USER_ID, $user->id);
 
         return to_route('password.reset.otp.page')
-            ->with('status', __('OTP sent successfully to your mobile number.'));
+            ->with([
+                'status' => __('OTP sent successfully to your mobile number.'),
+                'status_type' => 'success',
+            ]);
     }
 
     /**
@@ -123,7 +126,10 @@ class PasswordResetLinkController extends Controller
             ]);
         }
 
-        return back()->with('status', __('OTP resent successfully.'));
+        return back()->with([
+            'status' => __('OTP resent successfully.'),
+            'status_type' => 'success',
+        ]);
     }
 
     /**

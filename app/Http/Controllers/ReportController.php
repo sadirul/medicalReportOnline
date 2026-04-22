@@ -203,7 +203,10 @@ class ReportController extends Controller
             return $report;
         });
 
-        return to_route('reports.show', $report)->with('status', 'Report created successfully.');
+        return to_route('reports.show', $report)->with([
+            'status' => 'Report created successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function release(Request $request, Report $report): RedirectResponse
@@ -218,7 +221,10 @@ class ReportController extends Controller
             ->exists();
 
         if ($hasEmptyResultValue) {
-            return back()->with('status', 'Fill all result values before releasing this report.');
+            return back()->with([
+                'status' => 'Fill all result values before releasing this report.',
+                'status_type' => 'error',
+            ]);
         }
 
         if ($report->publication_status !== 'released') {
@@ -228,7 +234,10 @@ class ReportController extends Controller
             ]);
         }
 
-        return back()->with('status', 'Report released successfully.');
+        return back()->with([
+            'status' => 'Report released successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function update(StoreReportRequest $request, Report $report): RedirectResponse
@@ -288,7 +297,10 @@ class ReportController extends Controller
             }
         });
 
-        return to_route('reports.show', $report)->with('status', 'Report updated successfully.');
+        return to_route('reports.show', $report)->with([
+            'status' => 'Report updated successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function sendWhatsApp(Request $request, Report $report): RedirectResponse
@@ -303,6 +315,13 @@ class ReportController extends Controller
         }
 
         $patientWhatsAppNumber = (string) ($report->patient_whatsapp_number ?? '');
+        if ($patientWhatsAppNumber === '') {
+            return back()->with([
+                'status' => 'Please update patient mobile number.',
+                'status_type' => 'error',
+            ]);
+        }
+
         if (! preg_match('/^\d{10}$/', $patientWhatsAppNumber)) {
             return back()->with([
                 'status' => 'Patient WhatsApp number must be exactly 10 digits.',

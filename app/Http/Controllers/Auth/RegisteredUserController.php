@@ -111,7 +111,10 @@ class RegisteredUserController extends Controller
         $request->session()->put(self::OTP_SESSION_USER_ID, $user->id);
 
         return to_route('register.otp.verify.page')
-            ->with('status', __('OTP sent successfully to your mobile number.'));
+            ->with([
+                'status' => __('OTP sent successfully to your mobile number.'),
+                'status_type' => 'success',
+            ]);
     }
 
     /**
@@ -161,7 +164,10 @@ class RegisteredUserController extends Controller
             ]);
         }
 
-        return back()->with('status', __('OTP resent successfully.'));
+        return back()->with([
+            'status' => __('OTP resent successfully.'),
+            'status_type' => 'success',
+        ]);
     }
 
     /**

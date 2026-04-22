@@ -58,11 +58,17 @@ class ClinicConnectionController extends Controller
             ->first();
 
         if (! $target) {
-            return back()->with('status', 'Clinic ID not found.');
+            return back()->with([
+                'status' => 'Clinic ID not found.',
+                'status_type' => 'error',
+            ]);
         }
 
         if ($target->id === $currentUser->id) {
-            return back()->with('status', 'You cannot connect your own clinic.');
+            return back()->with([
+                'status' => 'You cannot connect your own clinic.',
+                'status_type' => 'error',
+            ]);
         }
 
         [$leftId, $rightId] = [(int) min($currentUser->id, $target->id), (int) max($currentUser->id, $target->id)];
@@ -73,7 +79,10 @@ class ClinicConnectionController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->with('status', 'This clinic is already connected.');
+            return back()->with([
+                'status' => 'This clinic is already connected.',
+                'status_type' => 'error',
+            ]);
         }
 
         ClinicConnection::query()->create([
@@ -81,6 +90,9 @@ class ClinicConnectionController extends Controller
             'connected_clinic_user_id' => $rightId,
         ]);
 
-        return back()->with('status', 'Clinic connected successfully.');
+        return back()->with([
+            'status' => 'Clinic connected successfully.',
+            'status_type' => 'success',
+        ]);
     }
 }

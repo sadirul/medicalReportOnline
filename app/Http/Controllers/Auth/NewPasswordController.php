@@ -83,6 +83,9 @@ class NewPasswordController extends Controller
 
         event(new PasswordReset($user));
 
-        return to_route('login')->with('status', __('Your password has been reset.'));
+        return to_route('login')->with([
+            'status' => __('Your password has been reset.'),
+            'status_type' => 'success',
+        ]);
     }
 }

@@ -53,7 +53,10 @@ class DepartmentController extends Controller
     {
         $request->user()->departments()->create($request->validated());
 
-        return back()->with('status', 'Department added successfully.');
+        return back()->with([
+            'status' => 'Department added successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function update(StoreDepartmentRequest $request, Department $department): RedirectResponse
@@ -62,7 +65,10 @@ class DepartmentController extends Controller
 
         $department->update($request->validated());
 
-        return back()->with('status', 'Department updated successfully.');
+        return back()->with([
+            'status' => 'Department updated successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function storeInvestigation(StoreInvestigationRequest $request, Department $department): RedirectResponse
@@ -77,7 +83,10 @@ class DepartmentController extends Controller
             'amount' => $payload['amount'] ?? null,
         ]);
 
-        return back()->with('status', 'Investigation added successfully.');
+        return back()->with([
+            'status' => 'Investigation added successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function updateInvestigation(StoreInvestigationRequest $request, Investigation $investigation): RedirectResponse
@@ -94,6 +103,9 @@ class DepartmentController extends Controller
             'amount' => $payload['amount'] ?? null,
         ]);
 
-        return back()->with('status', 'Investigation updated successfully.');
+        return back()->with([
+            'status' => 'Investigation updated successfully.',
+            'status_type' => 'success',
+        ]);
     }
 }

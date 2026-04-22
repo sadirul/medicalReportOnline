@@ -1,11 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { formatDateTimeInKolkata } from '@/lib/date-time';
-import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { FormEventHandler, useEffect } from 'react';
+import { FormEventHandler } from 'react';
 import { Printer, ReceiptText } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -35,8 +34,6 @@ export default function AllReport({
     reports: ReportRow[];
     filters: { patient_name: string; patient_address: string; from_date: string; to_date: string; status: string };
 }) {
-    const page = usePage<SharedData>();
-    const { flash } = page.props;
     const filterForm = useForm({
         patient_name: filters.patient_name || '',
         patient_address: filters.patient_address || '',
@@ -53,32 +50,6 @@ export default function AllReport({
             replace: true,
         });
     };
-
-    useEffect(() => {
-        if (!flash?.status || flash.status.trim() === '') {
-            return;
-        }
-
-        toast.dismiss('report-status');
-        toast.custom(
-            (t) => (
-                <button
-                    type="button"
-                    onClick={() => toast.dismiss(t.id)}
-                    className={`cursor-pointer rounded-md px-4 py-2 text-left text-sm font-medium text-white shadow-lg transition-all duration-300 ${
-                        t.visible ? 'translate-x-0 opacity-100' : 'translate-x-6 opacity-0'
-                    } ${flash.status_type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
-                >
-                    {flash.status}
-                </button>
-            ),
-            {
-                id: 'report-status',
-                duration: 4000,
-                position: 'top-right',
-            },
-        );
-    }, [page.props.flash, flash?.status, flash?.status_type]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -271,7 +242,7 @@ export default function AllReport({
                                                     Invoice
                                                 </a>
                                             </Button>
-                                            {report.publication_status === 'released' && !!report.patient_whatsapp_number && (
+                                            {report.publication_status === 'released' && (
                                                 <Button
                                                     size="sm"
                                                     className="bg-[#25D366] text-white hover:bg-[#1fbe5a] dark:bg-[#25D366] dark:text-white dark:hover:bg-[#1fbe5a]"

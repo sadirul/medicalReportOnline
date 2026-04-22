@@ -27,7 +27,10 @@ class PatientController extends Controller
     {
         $request->user()->patients()->create($request->validated());
 
-        return back()->with('status', 'Patient added successfully.');
+        return back()->with([
+            'status' => 'Patient added successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function update(StorePatientRequest $request, Patient $patient): RedirectResponse
@@ -36,6 +39,9 @@ class PatientController extends Controller
 
         $patient->update($request->validated());
 
-        return back()->with('status', 'Patient updated successfully.');
+        return back()->with([
+            'status' => 'Patient updated successfully.',
+            'status_type' => 'success',
+        ]);
     }
 }

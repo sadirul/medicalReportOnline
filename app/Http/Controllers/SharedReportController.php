@@ -130,7 +130,10 @@ class SharedReportController extends Controller
             ]);
         }
 
-        return to_route('clinics.requested.index')->with('status', 'Report sent successfully.');
+        return to_route('clinics.requested.index')->with([
+            'status' => 'Report sent successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function requestedIndex(Request $request): Response
@@ -380,7 +383,10 @@ class SharedReportController extends Controller
             ]);
         }
 
-        return to_route('clinics.client.index')->with('status', 'Client report saved successfully.');
+        return to_route('clinics.client.index')->with([
+            'status' => 'Client report saved successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function publishClientReport(Request $request, SharedReport $sharedReport): RedirectResponse
@@ -394,7 +400,10 @@ class SharedReportController extends Controller
             ->exists();
 
         if ($hasEmptyValues) {
-            return back()->with('status', 'Fill all result values before publishing this report.');
+            return back()->with([
+                'status' => 'Fill all result values before publishing this report.',
+                'status_type' => 'error',
+            ]);
         }
 
         $sharedReport->update([
@@ -403,7 +412,10 @@ class SharedReportController extends Controller
             'published_at' => now(),
         ]);
 
-        return back()->with('status', 'Client report published successfully.');
+        return back()->with([
+            'status' => 'Client report published successfully.',
+            'status_type' => 'success',
+        ]);
     }
 
     public function downloadPdf(Request $request, SharedReport $sharedReport): HttpResponse

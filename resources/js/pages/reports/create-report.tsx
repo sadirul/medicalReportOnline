@@ -506,6 +506,21 @@ export default function CreateReport({
                     </div>
                 </div>
 
+                <div className="grid gap-3 md:grid-cols-3">
+                    <div className="grid gap-2">
+                        <Label htmlFor="sample_note">Sample note</Label>
+                        <Input id="sample_note" value={data.sample_note} onChange={(e) => setData('sample_note', e.target.value)} placeholder="Sample: EDTA-Whole Blood." />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="equipment_note">Equipment note</Label>
+                        <Input id="equipment_note" value={data.equipment_note} onChange={(e) => setData('equipment_note', e.target.value)} placeholder="Equipment Used: Sysmex XN-1000 Cell Counter." />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="interpretation_note">Interpretation note</Label>
+                        <Input id="interpretation_note" value={data.interpretation_note} onChange={(e) => setData('interpretation_note', e.target.value)} placeholder="Please correlate with clinical conditions." />
+                    </div>
+                </div>
+
                 <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
                     <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                         <input

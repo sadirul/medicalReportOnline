@@ -57,6 +57,7 @@ class SharedReportController extends Controller
             'patient_sex' => ['required', Rule::in(['Male', 'Female', 'Other'])],
             'patient_address' => ['nullable', 'string', 'max:1000'],
             'patient_referred_by' => ['nullable', 'string', 'max:255'],
+            'patient_whatsapp_number' => ['nullable', 'digits:10'],
             'billing_date' => ['required', 'date'],
             'collection_date' => ['required', 'date'],
             'report_date' => ['required', 'date'],
@@ -98,6 +99,7 @@ class SharedReportController extends Controller
             'patient_sex' => $validated['patient_sex'],
             'patient_address' => $validated['patient_address'] ?? null,
             'patient_referred_by' => $validated['patient_referred_by'] ?? null,
+            'patient_whatsapp_number' => $validated['patient_whatsapp_number'] ?? null,
             'billing_date' => $validated['billing_date'],
             'collection_date' => $validated['collection_date'],
             'report_date' => $validated['report_date'],
@@ -133,7 +135,14 @@ class SharedReportController extends Controller
 
     public function requestedIndex(Request $request): Response
     {
-        $reports = SharedReport::query()
+        $receiverUserId = (int) $request->integer('receiver_user_id');
+        $patientName = trim($request->string('patient_name')->toString());
+        $fromDate = trim($request->string('from_date')->toString());
+        $toDate = trim($request->string('to_date')->toString());
+        $status = trim($request->string('status')->toString());
+        $connectedClinics = $this->connectedClinics($request->user());
+
+        $reportsQuery = SharedReport::query()
             ->where('sender_user_id', $request->user()->id)
             ->with('receiver:id,clinic_name,full_name,unique_clinic_id')
             ->withCount([
@@ -141,17 +150,60 @@ class SharedReportController extends Controller
                     $query->whereNull('value')->orWhere('value', '');
                 },
             ])
-            ->latest()
-            ->get();
+            ->latest();
+
+        if ($receiverUserId > 0) {
+            $isConnectedReceiver = $connectedClinics->contains(fn ($clinic) => (int) $clinic->id === $receiverUserId);
+            if ($isConnectedReceiver) {
+                $reportsQuery->where('receiver_user_id', $receiverUserId);
+            }
+        }
+
+        if ($patientName !== '') {
+            $reportsQuery->where('patient_name', 'like', '%'.$patientName.'%');
+        }
+
+        if ($fromDate !== '') {
+            $reportsQuery->whereDate('received_at', '>=', $fromDate);
+        }
+
+        if ($toDate !== '') {
+            $reportsQuery->whereDate('received_at', '<=', $toDate);
+        }
+
+        if ($status === 'pending') {
+            $reportsQuery->whereIn('status', ['sent', 'received']);
+        } elseif ($status === 'published') {
+            $reportsQuery->where('status', 'published');
+        } else {
+            $status = '';
+        }
+
+        $reports = $reportsQuery->get();
 
         return Inertia::render('clinics/requested-report', [
             'reports' => $reports,
+            'connectedClinics' => $connectedClinics,
+            'filters' => [
+                'receiver_user_id' => $receiverUserId > 0 ? (string) $receiverUserId : '',
+                'patient_name' => $patientName,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'status' => $status,
+            ],
         ]);
     }
 
     public function clientIndex(Request $request): Response
     {
-        $reports = SharedReport::query()
+        $senderUserId = (int) $request->integer('sender_user_id');
+        $patientName = trim($request->string('patient_name')->toString());
+        $fromDate = trim($request->string('from_date')->toString());
+        $toDate = trim($request->string('to_date')->toString());
+        $status = trim($request->string('status')->toString());
+        $connectedClinics = $this->connectedClinics($request->user());
+
+        $reportsQuery = SharedReport::query()
             ->where('receiver_user_id', $request->user()->id)
             ->with('sender:id,clinic_name,full_name,unique_clinic_id')
             ->withCount([
@@ -159,11 +211,47 @@ class SharedReportController extends Controller
                     $query->whereNull('value')->orWhere('value', '');
                 },
             ])
-            ->latest()
-            ->get();
+            ->latest();
+
+        if ($senderUserId > 0) {
+            $isConnectedSender = $connectedClinics->contains(fn ($clinic) => (int) $clinic->id === $senderUserId);
+            if ($isConnectedSender) {
+                $reportsQuery->where('sender_user_id', $senderUserId);
+            }
+        }
+
+        if ($patientName !== '') {
+            $reportsQuery->where('patient_name', 'like', '%'.$patientName.'%');
+        }
+
+        if ($fromDate !== '') {
+            $reportsQuery->whereDate('sent_at', '>=', $fromDate);
+        }
+
+        if ($toDate !== '') {
+            $reportsQuery->whereDate('sent_at', '<=', $toDate);
+        }
+
+        if ($status === 'pending') {
+            $reportsQuery->whereIn('status', ['sent', 'received']);
+        } elseif ($status === 'published') {
+            $reportsQuery->where('status', 'published');
+        } else {
+            $status = '';
+        }
+
+        $reports = $reportsQuery->get();
 
         return Inertia::render('clinics/client-report', [
             'reports' => $reports,
+            'connectedClinics' => $connectedClinics,
+            'filters' => [
+                'sender_user_id' => $senderUserId > 0 ? (string) $senderUserId : '',
+                'patient_name' => $patientName,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'status' => $status,
+            ],
         ]);
     }
 
@@ -227,6 +315,7 @@ class SharedReportController extends Controller
             'patient_sex' => ['required', Rule::in(['Male', 'Female', 'Other'])],
             'patient_address' => ['nullable', 'string', 'max:1000'],
             'patient_referred_by' => ['nullable', 'string', 'max:255'],
+            'patient_whatsapp_number' => ['nullable', 'digits:10'],
             'billing_date' => ['required', 'date'],
             'collection_date' => ['required', 'date'],
             'report_date' => ['required', 'date'],
@@ -263,6 +352,7 @@ class SharedReportController extends Controller
             'patient_sex' => $validated['patient_sex'],
             'patient_address' => $validated['patient_address'] ?? null,
             'patient_referred_by' => $validated['patient_referred_by'] ?? null,
+            'patient_whatsapp_number' => $validated['patient_whatsapp_number'] ?? null,
             'billing_date' => $validated['billing_date'],
             'collection_date' => $validated['collection_date'],
             'report_date' => $validated['report_date'],

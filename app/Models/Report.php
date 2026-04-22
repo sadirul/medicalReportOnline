@@ -23,6 +23,7 @@ class Report extends Model
         'patient_sex',
         'patient_address',
         'patient_referred_by',
+        'patient_whatsapp_number',
         'billing_date',
         'collection_date',
         'report_date',

@@ -5,6 +5,7 @@ use App\Http\Controllers\ClinicConnectionController;
 use App\Http\Controllers\SharedReportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
+use App\Models\SharedReport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,22 @@ Route::middleware(['auth'])->group(function () {
                 'total_reports' => $user->reports()->count(),
                 'released_reports' => $user->reports()->where('publication_status', 'released')->count(),
                 'unreleased_reports' => $user->reports()->where('publication_status', 'unpublished')->count(),
+                'pending_sent_reports' => SharedReport::query()
+                    ->where('sender_user_id', $user->id)
+                    ->whereIn('status', ['sent', 'received'])
+                    ->count(),
+                'published_sent_reports' => SharedReport::query()
+                    ->where('sender_user_id', $user->id)
+                    ->where('status', 'published')
+                    ->count(),
+                'pending_incoming_reports' => SharedReport::query()
+                    ->where('receiver_user_id', $user->id)
+                    ->whereIn('status', ['sent', 'received'])
+                    ->count(),
+                'published_incoming_reports' => SharedReport::query()
+                    ->where('receiver_user_id', $user->id)
+                    ->where('status', 'published')
+                    ->count(),
             ],
             'monthlyReports' => $monthlyReports,
             'currentYear' => $currentYear,

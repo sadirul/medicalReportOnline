@@ -39,6 +39,7 @@ type Report = {
     patient_sex: string;
     patient_address?: string | null;
     patient_referred_by?: string | null;
+    patient_whatsapp_number?: string | null;
     items: ReportItem[];
 };
 
@@ -145,6 +146,9 @@ export default function ShowReport({ report }: { report: Report }) {
                     </p>
                     <p>
                         <strong>Referred By:</strong> {report.patient_referred_by ?? '-'}
+                    </p>
+                    <p>
+                        <strong>WhatsApp Number:</strong> {report.patient_whatsapp_number ?? '-'}
                     </p>
                     <p>
                         <strong>Report Date:</strong> {formatDateTimeInKolkata(report.report_date)}

@@ -31,6 +31,7 @@ type EditableReport = {
     patient_sex: string;
     patient_address?: string | null;
     patient_referred_by?: string | null;
+    patient_whatsapp_number?: string | null;
     billing_date: string;
     collection_date: string;
     report_date: string;
@@ -133,6 +134,7 @@ export default function CreateReport({
         patient_sex: report?.patient_sex ?? '',
         patient_address: report?.patient_address ?? '',
         patient_referred_by: report?.patient_referred_by ?? '',
+        patient_whatsapp_number: report?.patient_whatsapp_number ?? '',
         billing_date: report ? report.billing_date.slice(0, 16) : dateForInput(),
         collection_date: report ? report.collection_date.slice(0, 16) : dateForInput(),
         report_date: report ? report.report_date.slice(0, 16) : dateForInput(),
@@ -251,6 +253,7 @@ export default function CreateReport({
             patient_sex: data.patient_sex,
             patient_address: data.patient_address,
             patient_referred_by: data.patient_referred_by,
+            patient_whatsapp_number: data.patient_whatsapp_number,
             billing_date: data.billing_date,
             collection_date: data.collection_date,
             report_date: data.report_date,
@@ -301,7 +304,7 @@ export default function CreateReport({
                     </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="patient_address">Address</Label>
                         <Input id="patient_address" value={data.patient_address} onChange={(e) => setData('patient_address', e.target.value)} />
@@ -311,6 +314,18 @@ export default function CreateReport({
                         <Label htmlFor="patient_referred_by">Referred By</Label>
                         <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} />
                         <InputError message={errors.patient_referred_by} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="patient_whatsapp_number">WhatsApp Number</Label>
+                        <Input
+                            id="patient_whatsapp_number"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={10}
+                            value={data.patient_whatsapp_number}
+                            onChange={(e) => setData('patient_whatsapp_number', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        />
+                        <InputError message={errors.patient_whatsapp_number} />
                     </div>
                 </div>
 

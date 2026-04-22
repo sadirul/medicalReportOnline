@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Building2, FileText, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Building2, FileText, Inbox, Send, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,6 +20,10 @@ export default function Dashboard({
         total_reports: number;
         released_reports: number;
         unreleased_reports: number;
+        pending_sent_reports: number;
+        published_sent_reports: number;
+        pending_incoming_reports: number;
+        published_incoming_reports: number;
     };
     monthlyReports: Array<{
         month: string;
@@ -60,6 +64,40 @@ export default function Dashboard({
         },
     ];
 
+    const sentReportCards = [
+        {
+            title: 'Pending sent report',
+            value: stats.pending_sent_reports,
+            href: '/clinics/other-clinic/requested-report',
+            icon: Send,
+            iconClass: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
+        },
+        {
+            title: 'Published sent report',
+            value: stats.published_sent_reports,
+            href: '/clinics/other-clinic/requested-report',
+            icon: ShieldCheck,
+            iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
+        },
+    ];
+
+    const incomingReportCards = [
+        {
+            title: 'Pending incoming report',
+            value: stats.pending_incoming_reports,
+            href: '/clinics/other-clinic/client-report',
+            icon: Inbox,
+            iconClass: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
+        },
+        {
+            title: 'Published incoming report',
+            value: stats.published_incoming_reports,
+            href: '/clinics/other-clinic/client-report',
+            icon: ShieldCheck,
+            iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -67,6 +105,44 @@ export default function Dashboard({
                 <h2 className="w-full text-left text-lg font-semibold text-slate-800 dark:text-slate-100">Dashboard Overview</h2>
                 <div className="grid auto-rows-min gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {cards.map((card) => (
+                        <Link
+                            key={card.title}
+                            href={card.href}
+                            className="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-slate-900"
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className={`rounded-lg p-2 ${card.iconClass}`}>
+                                    <card.icon className="h-5 w-5" />
+                                </div>
+                                <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{card.value}</p>
+                            </div>
+                            <p className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-300">{card.title}</p>
+                        </Link>
+                    ))}
+                </div>
+
+                <h3 className="mt-2 text-base font-semibold text-slate-800 dark:text-slate-100">Other Clinic Sent Report Overview</h3>
+                <div className="grid auto-rows-min gap-4 md:grid-cols-2">
+                    {sentReportCards.map((card) => (
+                        <Link
+                            key={card.title}
+                            href={card.href}
+                            className="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-slate-900"
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className={`rounded-lg p-2 ${card.iconClass}`}>
+                                    <card.icon className="h-5 w-5" />
+                                </div>
+                                <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{card.value}</p>
+                            </div>
+                            <p className="mt-4 text-sm font-medium text-slate-600 dark:text-slate-300">{card.title}</p>
+                        </Link>
+                    ))}
+                </div>
+
+                <h3 className="mt-2 text-base font-semibold text-slate-800 dark:text-slate-100">Incoming Report Overview</h3>
+                <div className="grid auto-rows-min gap-4 md:grid-cols-2">
+                    {incomingReportCards.map((card) => (
                         <Link
                             key={card.title}
                             href={card.href}

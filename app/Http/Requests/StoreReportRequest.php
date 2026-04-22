@@ -30,6 +30,7 @@ class StoreReportRequest extends FormRequest
             'patient_sex' => ['required', Rule::in(['Male', 'Female', 'Other'])],
             'patient_address' => ['nullable', 'string', 'max:1000'],
             'patient_referred_by' => ['nullable', 'string', 'max:255'],
+            'patient_whatsapp_number' => ['nullable', 'digits:10'],
             'billing_date' => ['required', 'date'],
             'collection_date' => ['required', 'date'],
             'report_date' => ['required', 'date'],

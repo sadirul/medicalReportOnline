@@ -75,6 +75,7 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
         patient_sex: '',
         patient_address: '',
         patient_referred_by: '',
+        patient_whatsapp_number: '',
         billing_date: dateForInput(),
         collection_date: dateForInput(),
         report_date: dateForInput(),
@@ -220,6 +221,7 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
             patient_sex: data.patient_sex,
             patient_address: data.patient_address,
             patient_referred_by: data.patient_referred_by,
+            patient_whatsapp_number: data.patient_whatsapp_number,
             billing_date: data.billing_date,
             collection_date: data.collection_date,
             report_date: data.report_date,
@@ -294,7 +296,7 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                     </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="patient_address">Address</Label>
                         <Input id="patient_address" value={data.patient_address} onChange={(e) => setData('patient_address', e.target.value)} />
@@ -304,6 +306,18 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                         <Label htmlFor="patient_referred_by">Referred By</Label>
                         <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} />
                         <InputError message={errors.patient_referred_by} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="patient_whatsapp_number">WhatsApp Number</Label>
+                        <Input
+                            id="patient_whatsapp_number"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={10}
+                            value={data.patient_whatsapp_number}
+                            onChange={(e) => setData('patient_whatsapp_number', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        />
+                        <InputError message={errors.patient_whatsapp_number} />
                     </div>
                 </div>
 

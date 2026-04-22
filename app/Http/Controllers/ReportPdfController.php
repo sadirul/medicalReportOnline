@@ -23,7 +23,7 @@ class ReportPdfController extends Controller
         return $this->renderInlinePdf($report);
     }
 
-    public function publicShow(Report $report): Response
+    public function publicShow(Request $request, Report $report): Response
     {
         if ($report->publication_status !== 'released') {
             return response()->view('reports.not-released', [
@@ -31,7 +31,12 @@ class ReportPdfController extends Controller
             ], 403);
         }
 
-        return $this->renderInlinePdf($report);
+        $headerFooterOverride = $request->query('header-footer');
+        $forceHeaderFooter = $headerFooterOverride !== null
+            ? (bool) filter_var($headerFooterOverride, FILTER_VALIDATE_BOOLEAN)
+            : null;
+
+        return $this->renderInlinePdf($report, $forceHeaderFooter);
     }
 
     public function bill(Request $request, Report $report): Response
@@ -46,10 +51,13 @@ class ReportPdfController extends Controller
         return $this->renderInlineBill($report);
     }
 
-    private function renderInlinePdf(Report $report): Response
+    private function renderInlinePdf(Report $report, ?bool $forceHeaderFooter = null): Response
     {
         $report->load(['items.investigation.department', 'user']);
         $clinic = $report->user;
+        $includeHeaderFooter = $forceHeaderFooter === null
+            ? (bool) $report->include_header_footer
+            : (bool) $forceHeaderFooter;
 
         $groupedItems = $report->items
             ->groupBy(function ($item) {
@@ -67,8 +75,8 @@ class ReportPdfController extends Controller
             'report' => $report,
             'clinic' => $clinic,
             'groupedItems' => $groupedItems,
-            'headerImage' => $report->include_header_footer ? $this->toDataUri($clinic->report_header_image) : null,
-            'footerImage' => $report->include_header_footer ? $this->toDataUri($clinic->report_footer_image) : null,
+            'headerImage' => $includeHeaderFooter ? $this->toDataUri($clinic->report_header_image) : null,
+            'footerImage' => $includeHeaderFooter ? $this->toDataUri($clinic->report_footer_image) : null,
             'logoImage' => $this->toDataUri($clinic->logo),
         ])->setPaper('a4', 'portrait');
 

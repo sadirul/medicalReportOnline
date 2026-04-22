@@ -18,6 +18,9 @@ return [
                 'otp' => [
                     'message_id' => '13586',
                 ],
+                'send_pdf' => [
+                    'message_id' => '18614',
+                ],
 
             ],
         ],

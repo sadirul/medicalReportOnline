@@ -17,7 +17,7 @@ class WhatsAppHelper
         $params = [
             'authorization'     => config('sms.fast2sms.sms.api_key'),
             'message_id'        => $messageId,
-            'phone_number_id'   => config('sms.fast2sms.sms.phone_id'),
+            'phone_number_id'   => config('sms.fast2sms.whatsapp.phone_id'),
             'numbers'           => $mobileNumber,
             'variables_values'  => implode('|', $variables),
         ];
@@ -46,9 +46,11 @@ class WhatsAppHelper
     /**
      * API 2: Multiple variables + media
      */
-    public static function sendWithMedia($mobileNumber, $vars, $mediaUrl, $documentFilename)
+    public static function sendWithMedia($mobileNumber, $vars, $mediaUrl, $documentFilename, $messageId = null)
     {
-        return self::send(12274, $mobileNumber, $vars, $mediaUrl, $documentFilename);
+        $resolvedMessageId = $messageId ?: config('sms.fast2sms.whatsapp.templates.send_pdf.message_id');
+
+        return self::send($resolvedMessageId, $mobileNumber, $vars, $mediaUrl, $documentFilename);
     }
 
     /**

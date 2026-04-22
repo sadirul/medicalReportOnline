@@ -8,6 +8,7 @@ use App\Models\Report;
 use App\Models\ReportItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class ReportWorkflowTest extends TestCase
@@ -420,5 +421,114 @@ class ReportWorkflowTest extends TestCase
         $this->assertSame(['000000001', '000000002'], $clinicAReports->pluck('memo_number')->all());
         $this->assertSame([1], $clinicBReports->pluck('memo_sequence')->all());
         $this->assertSame(['000000001'], $clinicBReports->pluck('memo_number')->all());
+    }
+
+    public function test_cannot_send_whatsapp_for_unreleased_report(): void
+    {
+        $owner = User::factory()->create();
+        $report = Report::query()->create([
+            'user_id' => $owner->id,
+            'patient_name' => 'Patient',
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'publication_status' => 'unpublished',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'patient_whatsapp_number' => '9876543210',
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('reports.send-whatsapp', $report))
+            ->assertSessionHas('status', 'Only released reports can be sent to WhatsApp.');
+    }
+
+    public function test_cannot_send_whatsapp_without_valid_patient_number(): void
+    {
+        $owner = User::factory()->create();
+        $report = Report::query()->create([
+            'user_id' => $owner->id,
+            'patient_name' => 'Patient',
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'publication_status' => 'released',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'patient_whatsapp_number' => '12345',
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('reports.send-whatsapp', $report))
+            ->assertSessionHas('status', 'Patient WhatsApp number must be exactly 10 digits.');
+    }
+
+    public function test_non_owner_cannot_send_whatsapp_for_report(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $report = Report::query()->create([
+            'user_id' => $owner->id,
+            'patient_name' => 'Patient',
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'publication_status' => 'released',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'patient_whatsapp_number' => '9876543210',
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        $this->actingAs($other)
+            ->post(route('reports.send-whatsapp', $report))
+            ->assertForbidden();
+    }
+
+    public function test_can_send_whatsapp_for_released_report_with_header_footer_url(): void
+    {
+        Http::fake([
+            'https://www.fast2sms.com/dev/whatsapp*' => Http::response(['status' => true], 200),
+        ]);
+
+        $owner = User::factory()->create([
+            'report_header_image' => 'report-assets/header.png',
+        ]);
+        $report = Report::query()->create([
+            'user_id' => $owner->id,
+            'patient_name' => 'Patient',
+            'memo_number' => '000000001',
+            'memo_sequence' => 1,
+            'publication_status' => 'released',
+            'patient_age' => 30,
+            'patient_sex' => 'Male',
+            'patient_whatsapp_number' => '9876543210',
+            'include_header_footer' => true,
+            'billing_date' => now(),
+            'collection_date' => now(),
+            'report_date' => now(),
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('reports.send-whatsapp', $report))
+            ->assertSessionHas('status', 'Report sent to WhatsApp successfully.');
+
+        Http::assertSent(function ($request) use ($report): bool {
+            $query = [];
+            parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+
+            return str_contains($request->url(), 'fast2sms.com/dev/whatsapp')
+                && ($query['message_id'] ?? null) === config('sms.fast2sms.whatsapp.templates.send_pdf.message_id')
+                && ($query['phone_number_id'] ?? null) === config('sms.fast2sms.whatsapp.phone_id')
+                && ($query['numbers'] ?? null) === '91'.$report->patient_whatsapp_number
+                && str_contains((string) ($query['media_url'] ?? ''), route('reports.pdf', ['report' => $report->uuid]))
+                && str_contains((string) ($query['media_url'] ?? ''), 'header-footer=true')
+                && ! empty($query['document_filename']);
+        });
     }
 }

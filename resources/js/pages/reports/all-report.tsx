@@ -19,6 +19,7 @@ type ReportRow = {
     memo_number?: string | null;
     incomplete_results_count?: number;
     publication_status?: 'unpublished' | 'released' | string;
+    patient_whatsapp_number?: string | null;
     billing_date: string;
     collection_date: string;
     report_date: string;
@@ -214,6 +215,13 @@ export default function AllReport({
                                             <Button size="sm" variant="outline" asChild>
                                                 <Link href={route('reports.show', report.id)}>View</Link>
                                             </Button>
+                                            {report.publication_status === 'released' && !!report.patient_whatsapp_number && (
+                                                <Button size="sm" variant="outline" asChild>
+                                                    <Link href={route('reports.send-whatsapp', report.id)} method="post" as="button">
+                                                        Send to WhatsApp
+                                                    </Link>
+                                                </Button>
+                                            )}
                                             <Button size="sm" asChild>
                                                 <a
                                                     href={report.uuid ? route('reports.pdf', { report: report.uuid }) : '#'}

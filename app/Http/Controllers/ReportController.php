@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\WhatsAppHelper;
 use App\Http\Requests\StoreReportRequest;
 use App\Models\Investigation;
 use App\Models\Report;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -286,6 +288,53 @@ class ReportController extends Controller
         });
 
         return to_route('reports.show', $report)->with('status', 'Report updated successfully.');
+    }
+
+    public function sendWhatsApp(Request $request, Report $report): RedirectResponse
+    {
+        abort_unless($report->user_id === $request->user()->id, 403);
+
+        if ($report->publication_status !== 'released') {
+            return back()->with('status', 'Only released reports can be sent to WhatsApp.');
+        }
+
+        $patientWhatsAppNumber = (string) ($report->patient_whatsapp_number ?? '');
+        if (! preg_match('/^\d{10}$/', $patientWhatsAppNumber)) {
+            return back()->with('status', 'Patient WhatsApp number must be exactly 10 digits.');
+        }
+
+        if (! $report->uuid) {
+            $report->forceFill(['uuid' => (string) Str::uuid()])->save();
+        }
+
+        $hasUploadedHeaderFooterAssets = ! empty($request->user()->report_header_image)
+            || ! empty($request->user()->report_footer_image);
+
+        $pdfUrl = route('reports.pdf', [
+            'report' => $report->uuid,
+            ...($hasUploadedHeaderFooterAssets ? ['header-footer' => 'true'] : []),
+        ]);
+
+        $response = WhatsAppHelper::sendWithMedia(
+            '91'.$patientWhatsAppNumber,
+            [$report->patient_name, $request->user()->clinic_name],
+            $pdfUrl,
+            'report-'.($report->memo_number ?? $report->id).'.pdf'
+        );
+
+        $success = (bool) ($response['status'] ?? $response['return'] ?? false);
+
+        if (! $success) {
+            Log::warning('Failed sending report via WhatsApp.', [
+                'report_id' => $report->id,
+                'mobile' => $patientWhatsAppNumber,
+                'response' => $response,
+            ]);
+
+            return back()->with('status', 'Failed to send report to WhatsApp. Please try again.');
+        }
+
+        return back()->with('status', 'Report sent to WhatsApp successfully.');
     }
 
     public function show(Request $request, Report $report): Response

@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/{report}/edit', [ReportController::class, 'edit'])->name('reports.edit');
     Route::patch('reports/{report}', [ReportController::class, 'update'])->name('reports.update');
     Route::post('reports/{report}/release', [ReportController::class, 'release'])->name('reports.release');
+    Route::post('reports/{report}/send-whatsapp', [ReportController::class, 'sendWhatsApp'])->name('reports.send-whatsapp');
     Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::get('reports/{report}/bill', [ReportPdfController::class, 'bill'])->name('reports.bill');
 });

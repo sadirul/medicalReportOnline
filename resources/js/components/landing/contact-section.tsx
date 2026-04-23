@@ -19,7 +19,7 @@ const initialFormState: ContactFormState = {
     message: '',
 };
 
-const formSubmitAction = 'https://formsubmit.co/mymedilab@gmail.com';
+const formSubmitAction = 'https://formsubmit.co/mymedilabmax@gmail.com';
 
 export function ContactSection({ appName }: ContactSectionProps) {
     const [formState, setFormState] = useState<ContactFormState>(initialFormState);
@@ -109,7 +109,7 @@ export function ContactSection({ appName }: ContactSectionProps) {
                             <span className="rounded-md bg-fuchsia-500/20 p-2">
                                 <Mail className="h-4 w-4" />
                             </span>
-                            <span>mymedilab@gmail.com</span>
+                            <span>mymedilabmax@gmail.com</span>
                         </div>
                         <div className="flex items-center gap-3 text-slate-100">
                             <span className="rounded-md bg-violet-500/20 p-2">

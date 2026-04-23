@@ -31,7 +31,6 @@ export interface Testimonial {
 export const supportLinks = [
     { label: 'Pricing', href: '/pricing' },
     { label: 'Contact Us', href: '#contact' },
-    { label: 'Community', href: '#community' },
 ];
 
 export const legalLinks = [

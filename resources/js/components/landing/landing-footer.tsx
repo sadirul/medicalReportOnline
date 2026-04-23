@@ -20,7 +20,7 @@ export function LandingFooter({ appName }: LandingFooterProps) {
                     <p className="mt-4 text-sm leading-relaxed text-slate-300">
                         Empowering diagnostic centers with modern software to streamline reports, operations, and patient communication.
                     </p>
-                    <div className="mt-5 flex items-center gap-2">
+                    {/* <div className="mt-5 flex items-center gap-2">
                         <a
                             href="https://facebook.com"
                             target="_blank"
@@ -45,7 +45,7 @@ export function LandingFooter({ appName }: LandingFooterProps) {
                         >
                             <Linkedin className="h-4 w-4" />
                         </a>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div>

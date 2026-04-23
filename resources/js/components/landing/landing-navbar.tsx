@@ -1,4 +1,5 @@
-import { Link } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 
@@ -15,6 +16,10 @@ const sectionLinks = [
 
 export function LandingNavbar({ appName }: LandingNavbarProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { auth } = usePage<SharedData>().props;
+    const isLoggedIn = Boolean(auth?.user);
+    const authLinkHref = isLoggedIn ? '/dashboard' : route('login');
+    const authLinkLabel = isLoggedIn ? 'Dashboard' : 'Log in';
 
     return (
         <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md">
@@ -32,8 +37,8 @@ export function LandingNavbar({ appName }: LandingNavbarProps) {
                 </nav>
 
                 <div className="hidden items-center gap-3 md:flex">
-                    <Link href={route('login')} className="text-sm font-medium text-slate-700 transition hover:text-slate-900">
-                        Log in
+                    <Link href={authLinkHref} className="text-sm font-medium text-slate-700 transition hover:text-slate-900">
+                        {authLinkLabel}
                     </Link>
                     <Link href={route('register')} className="rounded-md bg-linear-to-r from-blue-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white">
                         Signup
@@ -60,8 +65,8 @@ export function LandingNavbar({ appName }: LandingNavbarProps) {
                         ))}
                         <div className="mt-2 border-t border-slate-200 pt-3">
                             <div className="flex gap-4">
-                                <Link href={route('login')} className="text-sm text-slate-700">
-                                    Log in
+                                <Link href={authLinkHref} className="text-sm text-slate-700">
+                                    {authLinkLabel}
                                 </Link>
                                 <Link href={route('register')} className="text-sm font-semibold text-slate-900">
                                     Signup

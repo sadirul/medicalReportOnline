@@ -17,6 +17,35 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+Route::get('pricing', function () {
+    $package = config('subscription.yearly_package');
+    $amountRupees = (float) ($package['amount_rupees'] ?? 0);
+
+    return Inertia::render('pricing', [
+        'yearly_package' => [
+            'amount_formatted' => number_format($amountRupees, 2, '.', ','),
+            'currency' => $package['currency'] ?? 'INR',
+            'label' => $package['label'] ?? 'Annual subscription',
+        ],
+    ]);
+})->name('pricing');
+
+Route::get('legal/privacy-policy', function () {
+    return Inertia::render('legal/privacy-policy');
+})->name('legal.privacy');
+
+Route::get('legal/terms-and-conditions', function () {
+    return Inertia::render('legal/terms-and-conditions');
+})->name('legal.terms');
+
+Route::get('legal/cookie-policy', function () {
+    return Inertia::render('legal/cookie-policy');
+})->name('legal.cookie');
+
+Route::get('legal/refund-policy', function () {
+    return Inertia::render('legal/refund-policy');
+})->name('legal.refund');
+
 Route::get('reports/{report:uuid}/pdf', [ReportPdfController::class, 'publicShow'])->name('reports.pdf');
 Route::get('reports/public/{report:uuid}/bill', [ReportPdfController::class, 'publicBill'])->name('reports.public.bill');
 

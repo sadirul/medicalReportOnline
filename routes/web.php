@@ -124,6 +124,7 @@ Route::middleware(['auth', 'subscription.active'])->group(function () {
 
     Route::get('clinics/other-clinic', [ClinicConnectionController::class, 'index'])->name('clinics.other.index');
     Route::post('clinics/other-clinic/connect', [ClinicConnectionController::class, 'store'])->name('clinics.other.connect');
+    Route::post('clinics/other-clinic/create-account', [ClinicConnectionController::class, 'createAccountAndConnect'])->name('clinics.other.create-account');
     Route::get('clinics/other-clinic/sent-report/create', [SharedReportController::class, 'createSentReport'])->name('clinics.sent.create');
     Route::post('clinics/other-clinic/sent-report', [SharedReportController::class, 'storeSentReport'])->name('clinics.sent.store');
     Route::get('clinics/other-clinic/catalog/{receiver}', [SharedReportController::class, 'fetchReceiverCatalog'])->name('clinics.sent.catalog');

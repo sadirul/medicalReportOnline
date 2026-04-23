@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Clinic\CreateClinicAccountRequest;
 use App\Models\ClinicConnection;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Throwable;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -92,6 +96,45 @@ class ClinicConnectionController extends Controller
 
         return back()->with([
             'status' => 'Clinic connected successfully.',
+            'status_type' => 'success',
+        ]);
+    }
+
+    public function createAccountAndConnect(CreateClinicAccountRequest $request): RedirectResponse
+    {
+        $currentUser = $request->user();
+        $validated = $request->validated();
+
+        try {
+            DB::transaction(function () use ($validated, $currentUser): void {
+                $newClinic = User::query()->create([
+                    'full_name' => $validated['full_name'],
+                    'clinic_name' => $validated['clinic_name'],
+                    'mobile' => $validated['mobile'],
+                    'email' => $validated['email'],
+                    'address' => $validated['address'],
+                    'password' => Hash::make($validated['password']),
+                    'is_verified' => true,
+                    'email_verified_at' => now(),
+                    'expiry_datetime' => now()->subDay(),
+                ]);
+
+                [$leftId, $rightId] = [(int) min($currentUser->id, $newClinic->id), (int) max($currentUser->id, $newClinic->id)];
+
+                ClinicConnection::query()->firstOrCreate([
+                    'clinic_user_id' => $leftId,
+                    'connected_clinic_user_id' => $rightId,
+                ]);
+            });
+        } catch (Throwable) {
+            return back()->with([
+                'status' => 'Unable to create clinic account right now. Please try again.',
+                'status_type' => 'error',
+            ]);
+        }
+
+        return back()->with([
+            'status' => 'Clinic account created and connected successfully.',
             'status_type' => 'success',
         ]);
     }

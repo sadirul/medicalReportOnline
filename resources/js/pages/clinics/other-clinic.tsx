@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -32,12 +33,30 @@ export default function OtherClinic({
     connectedClinics: ConnectedClinic[];
     myClinicUniqueId: string;
 }) {
-    const { flash } = usePage<{ flash?: { status?: string } }>().props;
+    const { flash } = usePage<{ flash?: { status?: string; status_type?: string } }>().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         clinic_unique_id: '',
     });
+    const {
+        data: createData,
+        setData: setCreateData,
+        post: createPost,
+        processing: createProcessing,
+        errors: createErrors,
+        reset: resetCreateForm,
+        clearErrors: clearCreateErrors,
+    } = useForm({
+        full_name: '',
+        clinic_name: '',
+        mobile: '',
+        email: '',
+        address: '',
+        password: '',
+        password_confirmation: '',
+    });
     const [showClinicId, setShowClinicId] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [createModalOpen, setCreateModalOpen] = useState(false);
 
     const maskedClinicId = (clinicId: string): string => {
         if (clinicId.length <= 6) {
@@ -56,6 +75,12 @@ export default function OtherClinic({
         await navigator.clipboard.writeText(myClinicUniqueId);
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
+    };
+
+    const closeCreateModal = (): void => {
+        setCreateModalOpen(false);
+        clearCreateErrors();
+        resetCreateForm();
     };
 
     return (
@@ -86,6 +111,7 @@ export default function OtherClinic({
                         event.preventDefault();
                         post(route('clinics.other.connect'), {
                             preserveScroll: true,
+                            errorBag: 'connectClinic',
                             onSuccess: () => reset(),
                         });
                     }}
@@ -106,7 +132,137 @@ export default function OtherClinic({
                     </div>
                 </form>
 
-                {flash?.status && <p className="text-sm text-slate-700 dark:text-slate-200">{flash.status}</p>}
+                <div className="border-t border-slate-200 pt-4 dark:border-slate-700" />
+
+                <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-sm hover:from-blue-700 hover:to-indigo-700">
+                            Create clinic account
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Create clinic account</DialogTitle>
+                            <DialogDescription>Enter clinic details. Account will be created and automatically connected with your clinic.</DialogDescription>
+                        </DialogHeader>
+                        <form
+                            className="grid gap-4"
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                createPost(route('clinics.other.create-account'), {
+                                    preserveScroll: true,
+                                    errorBag: 'createClinic',
+                                    onSuccess: () => closeCreateModal(),
+                                });
+                            }}
+                        >
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="create_full_name">Full name</Label>
+                                    <Input
+                                        id="create_full_name"
+                                        value={createData.full_name}
+                                        onChange={(event) => setCreateData('full_name', event.target.value)}
+                                        placeholder="Full name"
+                                    />
+                                    <InputError message={createErrors.full_name} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="create_clinic_name">Clinic name</Label>
+                                    <Input
+                                        id="create_clinic_name"
+                                        value={createData.clinic_name}
+                                        onChange={(event) => setCreateData('clinic_name', event.target.value)}
+                                        placeholder="Clinic name"
+                                    />
+                                    <InputError message={createErrors.clinic_name} />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="create_mobile">Mobile number</Label>
+                                    <Input
+                                        id="create_mobile"
+                                        value={createData.mobile}
+                                        onChange={(event) => setCreateData('mobile', event.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        placeholder="10 digit mobile number"
+                                    />
+                                    <InputError message={createErrors.mobile} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="create_email">Email</Label>
+                                    <Input
+                                        id="create_email"
+                                        type="email"
+                                        value={createData.email}
+                                        onChange={(event) => setCreateData('email', event.target.value)}
+                                        placeholder="email@example.com"
+                                    />
+                                    <InputError message={createErrors.email} />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="create_address">Address</Label>
+                                <Input
+                                    id="create_address"
+                                    value={createData.address}
+                                    onChange={(event) => setCreateData('address', event.target.value)}
+                                    placeholder="Clinic address"
+                                />
+                                <InputError message={createErrors.address} />
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="create_password">Password</Label>
+                                    <Input
+                                        id="create_password"
+                                        type="password"
+                                        value={createData.password}
+                                        onChange={(event) => setCreateData('password', event.target.value)}
+                                        placeholder="Password"
+                                    />
+                                    <InputError message={createErrors.password} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="create_password_confirmation">Confirm password</Label>
+                                    <Input
+                                        id="create_password_confirmation"
+                                        type="password"
+                                        value={createData.password_confirmation}
+                                        onChange={(event) => setCreateData('password_confirmation', event.target.value)}
+                                        placeholder="Confirm password"
+                                    />
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline" onClick={closeCreateModal}>
+                                        Cancel
+                                    </Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={createProcessing}>
+                                    Create account
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {flash?.status && (
+                    <p
+                        className={`text-sm ${
+                            flash.status_type === 'error'
+                                ? 'text-red-700 dark:text-red-400'
+                                : 'text-emerald-700 dark:text-emerald-400'
+                        }`}
+                    >
+                        {flash.status}
+                    </p>
+                )}
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">

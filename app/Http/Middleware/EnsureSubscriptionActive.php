@@ -36,7 +36,15 @@ class EnsureSubscriptionActive
     {
         $user = $request->user();
 
-        if ($user === null || ! $user->isSubscriptionExpired()) {
+        if ($user === null) {
+            return $next($request);
+        }
+
+        if (! $user->isSubscriptionExpired()) {
+            if ($request->routeIs('subscription.index')) {
+                return redirect()->route('dashboard');
+            }
+
             return $next($request);
         }
 

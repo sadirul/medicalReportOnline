@@ -74,6 +74,17 @@ class SubscriptionMiddlewareTest extends TestCase
             ->assertOk();
     }
 
+    public function test_active_user_is_redirected_from_subscription_page(): void
+    {
+        $user = User::factory()->create([
+            'expiry_datetime' => now()->addMonth(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('subscription.index'))
+            ->assertRedirect(route('dashboard'));
+    }
+
     public function test_expired_user_can_download_own_report_bill(): void
     {
         $user = User::factory()->create([

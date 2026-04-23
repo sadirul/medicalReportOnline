@@ -466,7 +466,7 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                         <Input id="equipment_note" value={data.equipment_note} onChange={(e) => setData('equipment_note', e.target.value)} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="interpretation_note">Interpretation note</Label>
+                        <Label htmlFor="interpretation_note">Comments</Label>
                         <Input id="interpretation_note" value={data.interpretation_note} onChange={(e) => setData('interpretation_note', e.target.value)} />
                     </div>
                 </div>

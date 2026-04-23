@@ -16,8 +16,8 @@
         .investigation { display: inline-block; width: 42%; vertical-align: top; }
         .result { display: inline-block; width: 22%; vertical-align: top; }
         .interval { display: inline-block; width: 34%; vertical-align: top; }
-        .department-page { page-break-after: always; }
-        .department-page:last-of-type { page-break-after: auto; }
+        .department-block { page-break-inside: avoid; break-inside: avoid-page; margin-bottom: 14px; }
+        .department-block:last-of-type { margin-bottom: 0; }
         .meta-row { margin: 2px 0; }
         .meta-label { display: inline-block; width: 130px; font-weight: 700; }
         .meta-colon { display: inline-block; width: 14px; text-align: center; font-weight: 700; }
@@ -41,15 +41,18 @@
     @endif
 </div>
 
+<div class="patient-meta">
+    <div class="meta-row"><span class="meta-label">Patient Name</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_name ?: '-') }}</span></div>
+    <div class="meta-row"><span class="meta-label">Age/Sex</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->patient_age }} Y / {{ ucfirst(strtolower($sharedReport->patient_sex ?: '-')) }}</span></div>
+    <div class="meta-row"><span class="meta-label">Address</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_address ?: '-') }}</span></div>
+    <div class="meta-row"><span class="meta-label">Referred By</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_referred_by ?: '-') }}</span></div>
+    <div class="meta-row"><span class="meta-label">Billing Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
+    <div class="meta-row"><span class="meta-label">Collection Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->collection_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
+    <div class="meta-row"><span class="meta-label">Report Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->report_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
+</div>
+
 @foreach($groupedItems as $group)
-    <div class="department-page">
-        <div class="meta-row"><span class="meta-label">Patient Name</span><span class="meta-colon">:</span><span class="meta-value">{{ strtoupper($sharedReport->patient_name ?: '-') }}</span></div>
-        <div class="meta-row"><span class="meta-label">Age/Sex</span><span class="meta-colon">:</span><span class="meta-value">{{ $sharedReport->patient_age }} Y / {{ ucfirst(strtolower($sharedReport->patient_sex ?: '-')) }}</span></div>
-        <div class="meta-row"><span class="meta-label">Address</span><span class="meta-colon">:</span><span class="meta-value">{{ strtoupper($sharedReport->patient_address ?: '-') }}</span></div>
-        <div class="meta-row"><span class="meta-label">Referred By</span><span class="meta-colon">:</span><span class="meta-value">{{ strtoupper($sharedReport->patient_referred_by ?: '-') }}</span></div>
-        <div class="meta-row"><span class="meta-label">Billing Date</span><span class="meta-colon">:</span><span class="meta-value">{{ $sharedReport->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
-        <div class="meta-row"><span class="meta-label">Collection Date</span><span class="meta-colon">:</span><span class="meta-value">{{ $sharedReport->collection_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
-        <div class="meta-row"><span class="meta-label">Report Date</span><span class="meta-colon">:</span><span class="meta-value">{{ $sharedReport->report_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
+    <div class="department-block">
 
         <div class="section-title">DEPARTMENT OF {{ strtoupper($group['department']) }}</div>
         <div class="columns-head">

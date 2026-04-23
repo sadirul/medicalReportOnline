@@ -139,12 +139,14 @@
             vertical-align: top;
         }
 
-        .department-page {
-            page-break-after: always;
+        .department-block {
+            page-break-inside: avoid;
+            break-inside: avoid-page;
+            margin-bottom: 14px;
         }
 
-        .department-page:last-of-type {
-            page-break-after: auto;
+        .department-block:last-of-type {
+            margin-bottom: 0;
         }
 
         .note-line {
@@ -183,54 +185,55 @@
     @endif
 </div>
 
-@foreach($groupedItems as $group)
-    <div class="department-page">
-        <div class="patient-meta">
-            <div class="meta-col">
-                <div class="meta-row">
-                    <span class="meta-label">Patient Name</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ strtoupper($report->patient_name ?: '-') }}</span>
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Age/Sex</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ $report->patient_age }} Y / {{ ucfirst(strtolower($report->patient_sex ?: '-')) }}</span>
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Address</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ strtoupper($report->patient_address ?: '-') }}</span>
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Referred By</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ strtoupper($report->patient_referred_by ?: '-') }}</span>
-                </div>
-            </div>
-            <div class="meta-col right">
-                <div class="meta-row">
-                    <span class="meta-label">Memo No</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ $report->memo_number ?: '-' }}</span>
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Billing Date</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ $report->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Collection Date</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ $report->collection_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Report Date</span>
-                    <span class="meta-colon">:</span>
-                    <span class="meta-value">{{ $report->report_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
-                </div>
-            </div>
+<div class="patient-meta">
+    <div class="meta-col">
+        <div class="meta-row">
+            <span class="meta-label">Patient Name</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ strtoupper($report->patient_name ?: '-') }}</span>
         </div>
+        <div class="meta-row">
+            <span class="meta-label">Age/Sex</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ $report->patient_age }} Y / {{ ucfirst(strtolower($report->patient_sex ?: '-')) }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Address</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ strtoupper($report->patient_address ?: '-') }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Referred By</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ strtoupper($report->patient_referred_by ?: '-') }}</span>
+        </div>
+    </div>
+    <div class="meta-col right">
+        <div class="meta-row">
+            <span class="meta-label">Memo No</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ $report->memo_number ?: '-' }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Billing Date</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ $report->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Collection Date</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ $report->collection_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Report Date</span>
+            <span class="meta-colon">:</span>
+            <span class="investigation">{{ $report->report_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span>
+        </div>
+    </div>
+</div>
+
+@foreach($groupedItems as $group)
+    <div class="department-block">
 
         <div class="section-title">DEPARTMENT OF {{ strtoupper($group['department']) }}</div>
 
@@ -255,10 +258,10 @@
 @if($report->sample_note || $report->equipment_note || $report->interpretation_note)
     <div class="note">
         @if($report->sample_note)
-            <div class="note-line"><strong>NOTE ::</strong> {{ $report->sample_note }}</div>
+            <div class="note-line"><strong>Note ::</strong> {{ $report->sample_note }}</div>
         @endif
         @if($report->equipment_note)
-            <div class="note-line"><strong>NOTE ::</strong> {{ $report->equipment_note }}</div>
+            <div class="note-line"><strong>Equipment note ::</strong> {{ $report->equipment_note }}</div>
         @endif
         @if($report->interpretation_note)
             <div class="note-line"><strong>Comments :</strong> {{ $report->interpretation_note }}</div>

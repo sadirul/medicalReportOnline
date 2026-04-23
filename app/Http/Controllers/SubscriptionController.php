@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RenewTransaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,12 +19,14 @@ class SubscriptionController extends Controller
     {
         $user = $request->user();
         $pkg = config('subscription.yearly_package');
-        $amountPaise = (int) ($pkg['amount_paise'] ?? 0);
-        $amountFormatted = number_format($amountPaise / 100, 2, '.', ',');
+        $amountRupees = (float) ($pkg['amount_rupees'] ?? 0);
+        $amountPaise = $this->toPaise($amountRupees);
+        $amountFormatted = number_format($amountRupees, 2, '.', ',');
 
         return Inertia::render('subscription/index', [
             'yearly_package' => [
                 'amount_paise' => $amountPaise,
+                'amount_rupees' => $amountRupees,
                 'amount_formatted' => $amountFormatted,
                 'currency' => $pkg['currency'] ?? 'INR',
                 'billing_period' => $pkg['billing_period'] ?? 'year',
@@ -44,7 +47,8 @@ class SubscriptionController extends Controller
             return response()->json(['message' => __('Payment gateway is not configured.')], 503);
         }
 
-        $amountPaise = (int) config('subscription.yearly_package.amount_paise', 0);
+        $amountRupees = (float) config('subscription.yearly_package.amount_rupees', 0);
+        $amountPaise = $this->toPaise($amountRupees);
 
         if ($amountPaise < 100) {
             return response()->json(['message' => __('Invalid subscription amount configuration.')], 500);
@@ -68,9 +72,26 @@ class SubscriptionController extends Controller
 
             /** @var array<string, mixed> $orderArr */
             $orderArr = $order->toArray();
+            $orderId = (string) ($orderArr['id'] ?? '');
+
+            if ($orderId === '') {
+                return response()->json(['message' => __('Unable to create payment order.')], 502);
+            }
+
+            RenewTransaction::query()->updateOrCreate(
+                ['razorpay_order_id' => $orderId],
+                [
+                    'user_id' => $user->id,
+                    'amount' => $amountRupees,
+                    'status' => RenewTransaction::STATUS_CREATED,
+                    'currency' => (string) config('subscription.yearly_package.currency', 'INR'),
+                    'receipt' => $receipt,
+                    'json_response' => $orderArr,
+                ]
+            );
 
             return response()->json([
-                'order_id' => $orderArr['id'] ?? null,
+                'order_id' => $orderId,
                 'amount' => $amountPaise,
                 'currency' => config('subscription.yearly_package.currency', 'INR'),
                 'key' => $key,
@@ -105,19 +126,67 @@ class SubscriptionController extends Controller
                 'razorpay_order_id' => $validated['razorpay_order_id'],
             ]);
         } catch (SignatureVerificationError) {
+            $this->markTransactionFailed($request->user()->id, $validated, ['reason' => 'signature_verification_failed']);
+
             return $this->verifyFailureResponse($request, __('Payment verification failed.'));
         }
 
         $paymentId = $validated['razorpay_payment_id'];
 
         if (! Cache::add('razorpay_payment_processed:'.$paymentId, true, now()->addDays(366))) {
+            RenewTransaction::query()
+                ->where('razorpay_order_id', $validated['razorpay_order_id'])
+                ->update([
+                    'status' => RenewTransaction::STATUS_CAPTURED,
+                    'transaction_id' => $paymentId,
+                    'razorpay_payment_id' => $paymentId,
+                    'razorpay_signature' => $validated['razorpay_signature'],
+                    'json_response' => $validated,
+                ]);
+
             return $this->verifySuccessResponse($request);
         }
 
         $user = $request->user();
         $user->extendAnnualSubscription();
 
+        RenewTransaction::query()->updateOrCreate(
+            ['razorpay_order_id' => $validated['razorpay_order_id']],
+            [
+                'user_id' => $user->id,
+                'amount' => (float) config('subscription.yearly_package.amount_rupees', 0),
+                'status' => RenewTransaction::STATUS_CAPTURED,
+                'transaction_id' => $paymentId,
+                'currency' => (string) config('subscription.yearly_package.currency', 'INR'),
+                'razorpay_payment_id' => $paymentId,
+                'razorpay_signature' => $validated['razorpay_signature'],
+                'expiry_date' => $user->expiry_datetime,
+                'json_response' => $validated,
+            ]
+        );
+
         return $this->verifySuccessResponse($request);
+    }
+
+    public function markFailed(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'razorpay_order_id' => ['required', 'string', 'max:255'],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        RenewTransaction::query()->updateOrCreate(
+            ['razorpay_order_id' => $validated['razorpay_order_id']],
+            [
+                'user_id' => $request->user()->id,
+                'amount' => (float) config('subscription.yearly_package.amount_rupees', 0),
+                'status' => RenewTransaction::STATUS_FAILED,
+                'currency' => (string) config('subscription.yearly_package.currency', 'INR'),
+                'json_response' => $validated,
+            ]
+        );
+
+        return response()->json(['ok' => true]);
     }
 
     private function verifySuccessResponse(Request $request): RedirectResponse|JsonResponse
@@ -142,5 +211,31 @@ class SubscriptionController extends Controller
             'status' => $message,
             'status_type' => 'error',
         ]);
+    }
+
+    private function toPaise(float $amountRupees): int
+    {
+        return (int) round($amountRupees * 100);
+    }
+
+    /**
+     * @param  array{razorpay_order_id:string,razorpay_payment_id:string,razorpay_signature:string}  $validated
+     * @param  array<string, mixed>  $extra
+     */
+    private function markTransactionFailed(int $userId, array $validated, array $extra = []): void
+    {
+        RenewTransaction::query()->updateOrCreate(
+            ['razorpay_order_id' => $validated['razorpay_order_id']],
+            [
+                'user_id' => $userId,
+                'amount' => (float) config('subscription.yearly_package.amount_rupees', 0),
+                'status' => RenewTransaction::STATUS_FAILED,
+                'transaction_id' => $validated['razorpay_payment_id'],
+                'currency' => (string) config('subscription.yearly_package.currency', 'INR'),
+                'razorpay_payment_id' => $validated['razorpay_payment_id'],
+                'razorpay_signature' => $validated['razorpay_signature'],
+                'json_response' => array_merge($validated, $extra),
+            ]
+        );
     }
 }

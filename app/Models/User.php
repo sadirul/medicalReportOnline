@@ -160,4 +160,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(SharedReport::class, 'receiver_user_id');
     }
+
+    public function renewTransactions(): HasMany
+    {
+        return $this->hasMany(RenewTransaction::class);
+    }
 }

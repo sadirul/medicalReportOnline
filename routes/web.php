@@ -83,6 +83,7 @@ Route::middleware(['auth', 'subscription.active'])->group(function () {
     Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
     Route::post('subscription/order', [SubscriptionController::class, 'createOrder'])->name('subscription.order');
     Route::post('subscription/verify', [SubscriptionController::class, 'verify'])->name('subscription.verify');
+    Route::post('subscription/failed', [SubscriptionController::class, 'markFailed'])->name('subscription.failed');
 
     Route::get('departments/create-department', [DepartmentController::class, 'create'])->name('departments.create');
     Route::get('departments/all-department', [DepartmentController::class, 'index'])->name('departments.index');

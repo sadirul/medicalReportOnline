@@ -120,6 +120,8 @@ export default function SubscriptionIndex({
                 return;
             }
 
+            const orderId = orderPayload.order_id;
+
             const user = auth.user;
             const appName = import.meta.env.VITE_APP_NAME ?? 'Medical Report Online';
 
@@ -174,7 +176,32 @@ export default function SubscriptionIndex({
                     }
                 },
                 modal: {
-                    ondismiss: () => setPaying(false),
+                    ondismiss: async () => {
+                        setPaying(false);
+
+                        if (!orderId) {
+                            return;
+                        }
+
+                        try {
+                            await fetch(route('subscription.failed'), {
+                                method: 'POST',
+                                headers: {
+                                    Accept: 'application/json',
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken(),
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                credentials: 'same-origin',
+                                body: JSON.stringify({
+                                    razorpay_order_id: orderId,
+                                    reason: 'checkout_dismissed',
+                                }),
+                            });
+                        } catch {
+                            // Ignore logging failures; this should not block user interaction.
+                        }
+                    },
                 },
             };
 

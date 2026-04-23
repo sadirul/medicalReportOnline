@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RenewTransaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -37,7 +38,7 @@ class RazorpayWebhookController extends Controller
 
         $event = (string) ($data['event'] ?? '');
 
-        if ($event !== 'payment.captured') {
+        if ($event !== 'payment.captured' && $event !== 'payment.failed') {
             return response('OK', 200);
         }
 
@@ -76,7 +77,7 @@ class RazorpayWebhookController extends Controller
                 return response('OK', 200);
             }
 
-            $expectedAmount = (int) config('subscription.yearly_package.amount_paise', 0);
+            $expectedAmount = (int) round(((float) config('subscription.yearly_package.amount_rupees', 0)) * 100);
             $amountPaid = (int) ($paymentEntity['amount'] ?? 0);
 
             if ($expectedAmount > 0 && $amountPaid !== $expectedAmount) {
@@ -95,11 +96,44 @@ class RazorpayWebhookController extends Controller
                 return response('OK', 200);
             }
 
+            if ($event === 'payment.failed') {
+                RenewTransaction::query()->updateOrCreate(
+                    ['razorpay_order_id' => $orderId],
+                    [
+                        'user_id' => $user->id,
+                        'amount' => (float) config('subscription.yearly_package.amount_rupees', 0),
+                        'status' => RenewTransaction::STATUS_FAILED,
+                        'transaction_id' => $paymentId,
+                        'currency' => (string) ($paymentEntity['currency'] ?? config('subscription.yearly_package.currency', 'INR')),
+                        'receipt' => (string) ($orderArr['receipt'] ?? ''),
+                        'razorpay_payment_id' => $paymentId,
+                        'json_response' => $data,
+                    ]
+                );
+
+                return response('OK', 200);
+            }
+
             if (! Cache::add('razorpay_payment_processed:'.$paymentId, true, now()->addDays(366))) {
                 return response('OK', 200);
             }
 
             $user->extendAnnualSubscription();
+
+            RenewTransaction::query()->updateOrCreate(
+                ['razorpay_order_id' => $orderId],
+                [
+                    'user_id' => $user->id,
+                    'amount' => (float) config('subscription.yearly_package.amount_rupees', 0),
+                    'status' => RenewTransaction::STATUS_CAPTURED,
+                    'transaction_id' => $paymentId,
+                    'currency' => (string) ($paymentEntity['currency'] ?? config('subscription.yearly_package.currency', 'INR')),
+                    'receipt' => (string) ($orderArr['receipt'] ?? ''),
+                    'razorpay_payment_id' => $paymentId,
+                    'expiry_date' => $user->expiry_datetime,
+                    'json_response' => $data,
+                ]
+            );
         } catch (\Throwable $e) {
             Log::error('Razorpay webhook processing failed', ['exception' => $e]);
 

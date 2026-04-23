@@ -63,8 +63,12 @@
 
         @foreach($group['items'] as $item)
             <div class="result-line">
+                @php
+                    $resultValue = ($item->value === null || $item->value === '') ? '-' : $item->value;
+                    $resultUnit = $item->unit ?? '';
+                @endphp
                 <span class="investigation">{{ $item->parameter_name }}</span>
-                <span class="result">{{ trim(($item->value ?: '-') . ' ' . ($item->unit ?: '')) }}</span>
+                <span class="result">{{ trim($resultValue . ' ' . $resultUnit) }}</span>
                 <span class="interval">{{ $item->bio_ref_interval ?: '-' }}</span>
             </div>
         @endforeach

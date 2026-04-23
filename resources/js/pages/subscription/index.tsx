@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, CreditCard, Sparkles } from 'lucide-react';
+import { CheckCircle2, Copy, CreditCard, Sparkles, XCircle } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 
 declare global {
@@ -64,10 +64,18 @@ export default function SubscriptionIndex({
     subscription_expired: boolean;
     expiry_datetime?: string | null;
 }) {
+    type PaymentResult = {
+        status: 'captured' | 'failed';
+        message: string;
+        paymentId?: string | null;
+    };
+
     const { auth, flash } = usePage<SharedData>().props;
     const [scriptReady, setScriptReady] = useState(Boolean(window.Razorpay));
     const [paying, setPaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         loadRazorpayScript()
@@ -77,6 +85,8 @@ export default function SubscriptionIndex({
 
     const startPayment = useCallback(async () => {
         setError(null);
+        setPaymentResult(null);
+        setCopied(false);
 
         if (!razorpay_key) {
             setError('Payment gateway is not configured. Please contact support.');
@@ -156,23 +166,36 @@ export default function SubscriptionIndex({
                             }),
                         });
 
-                        const verifyPayload = (await verifyRes.json()) as { redirect?: string; message?: string };
+                        const verifyPayload = (await verifyRes.json()) as {
+                            status?: 'captured' | 'failed';
+                            message?: string;
+                            payment_id?: string;
+                        };
 
                         if (!verifyRes.ok) {
                             setPaying(false);
-                            setError(verifyPayload.message ?? 'Payment verification failed.');
+                            setPaymentResult({
+                                status: 'failed',
+                                message: verifyPayload.message ?? 'Payment verification failed.',
+                                paymentId: verifyPayload.payment_id ?? response.razorpay_payment_id,
+                            });
 
                             return;
                         }
 
-                        if (verifyPayload.redirect) {
-                            router.visit(verifyPayload.redirect);
-                        } else {
-                            router.visit(route('dashboard'));
-                        }
+                        setPaying(false);
+                        setPaymentResult({
+                            status: 'captured',
+                            message: verifyPayload.message ?? 'Payment captured successfully.',
+                            paymentId: verifyPayload.payment_id ?? response.razorpay_payment_id,
+                        });
                     } catch {
                         setPaying(false);
-                        setError('Payment verification failed. If you were charged, contact support with your receipt.');
+                        setPaymentResult({
+                            status: 'failed',
+                            message: 'Payment verification failed. If you were charged, contact support with your receipt.',
+                            paymentId: response.razorpay_payment_id,
+                        });
                     }
                 },
                 modal: {
@@ -201,6 +224,11 @@ export default function SubscriptionIndex({
                         } catch {
                             // Ignore logging failures; this should not block user interaction.
                         }
+
+                        setPaymentResult({
+                            status: 'failed',
+                            message: 'Payment was cancelled before completion.',
+                        });
                     },
                 },
             };
@@ -216,6 +244,16 @@ export default function SubscriptionIndex({
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
         void startPayment();
+    };
+
+    const copyPaymentId = async (paymentId: string) => {
+        try {
+            await navigator.clipboard.writeText(paymentId);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            setCopied(false);
+        }
     };
 
     const currencyLabel = yearly_package.currency === 'INR' ? '₹' : `${yearly_package.currency} `;
@@ -253,7 +291,7 @@ export default function SubscriptionIndex({
                     </div>
                 </div>
 
-                {(flash?.status || error) && (
+                {(flash?.status || error) && !paymentResult && (
                     <div
                         className={`rounded-lg border px-4 py-3 text-sm ${
                             error || flash?.status_type === 'error'
@@ -266,7 +304,53 @@ export default function SubscriptionIndex({
                     </div>
                 )}
 
-                <Card className="border-border/80 shadow-md">
+                {paymentResult ? (
+                    <Card className="border-border/80 shadow-md">
+                        <CardHeader className="items-center text-center">
+                            {paymentResult.status === 'captured' ? (
+                                <CheckCircle2 className="h-16 w-16 animate-bounce text-emerald-500" aria-hidden />
+                            ) : (
+                                <XCircle className="h-16 w-16 animate-pulse text-red-500" aria-hidden />
+                            )}
+                            <CardTitle className="text-2xl">
+                                {paymentResult.status === 'captured' ? 'Payment Successful' : 'Payment Failed'}
+                            </CardTitle>
+                            <CardDescription>{paymentResult.message}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="rounded-lg border border-border/70 bg-muted/40 p-4">
+                                <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Payment ID</p>
+                                <p className="font-mono text-sm">
+                                    {paymentResult.paymentId && paymentResult.paymentId.trim() !== '' ? paymentResult.paymentId : 'Not available'}
+                                </p>
+                            </div>
+                            {paymentResult.paymentId && paymentResult.paymentId.trim() !== '' && (
+                                <Button type="button" variant="outline" className="w-full" onClick={() => void copyPaymentId(paymentResult.paymentId)}>
+                                    <Copy className="mr-2 h-4 w-4" aria-hidden />
+                                    {copied ? 'Copied' : 'Copy payment ID'}
+                                </Button>
+                            )}
+                        </CardContent>
+                        <CardFooter className="flex flex-col items-stretch gap-3 sm:flex-row sm:justify-end">
+                            <Button type="button" onClick={() => router.visit(route('dashboard'))}>
+                                Go dashboard
+                            </Button>
+                            {paymentResult.status === 'failed' && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setPaymentResult(null);
+                                        setError(null);
+                                    }}
+                                >
+                                    Try again
+                                </Button>
+                            )}
+                        </CardFooter>
+                    </Card>
+                ) : (
+                    <Card className="border-border/80 shadow-md">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
                             <CreditCard className="h-5 w-5 text-primary" aria-hidden />
@@ -303,6 +387,7 @@ export default function SubscriptionIndex({
                         </form>
                     </CardFooter>
                 </Card>
+                )}
             </div>
         </AppLayout>
     );

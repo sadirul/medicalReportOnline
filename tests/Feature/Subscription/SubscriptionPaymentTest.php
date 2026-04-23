@@ -32,7 +32,8 @@ class SubscriptionPaymentTest extends TestCase
                 'razorpay_signature' => $signature,
             ])
             ->assertOk()
-            ->assertJsonStructure(['redirect']);
+            ->assertJsonPath('status', RenewTransaction::STATUS_CAPTURED)
+            ->assertJsonPath('payment_id', $paymentId);
 
         $user->refresh();
         $txn = RenewTransaction::query()->where('razorpay_order_id', $orderId)->first();

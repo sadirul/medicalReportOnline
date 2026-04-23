@@ -128,7 +128,7 @@ class SubscriptionController extends Controller
         } catch (SignatureVerificationError) {
             $this->markTransactionFailed($request->user()->id, $validated, ['reason' => 'signature_verification_failed']);
 
-            return $this->verifyFailureResponse($request, __('Payment verification failed.'));
+            return $this->verifyFailureResponse($request, __('Payment verification failed.'), $validated['razorpay_payment_id']);
         }
 
         $paymentId = $validated['razorpay_payment_id'];
@@ -144,7 +144,7 @@ class SubscriptionController extends Controller
                     'json_response' => $validated,
                 ]);
 
-            return $this->verifySuccessResponse($request);
+            return $this->verifySuccessResponse($request, $paymentId);
         }
 
         $user = $request->user();
@@ -165,7 +165,7 @@ class SubscriptionController extends Controller
             ]
         );
 
-        return $this->verifySuccessResponse($request);
+        return $this->verifySuccessResponse($request, $paymentId);
     }
 
     public function markFailed(Request $request): JsonResponse
@@ -189,10 +189,14 @@ class SubscriptionController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    private function verifySuccessResponse(Request $request): RedirectResponse|JsonResponse
+    private function verifySuccessResponse(Request $request, ?string $paymentId = null): RedirectResponse|JsonResponse
     {
         if ($request->expectsJson()) {
-            return response()->json(['redirect' => route('dashboard')]);
+            return response()->json([
+                'status' => RenewTransaction::STATUS_CAPTURED,
+                'message' => __('Payment captured successfully.'),
+                'payment_id' => $paymentId,
+            ]);
         }
 
         return redirect()->route('dashboard')->with([
@@ -201,10 +205,14 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    private function verifyFailureResponse(Request $request, string $message): RedirectResponse|JsonResponse
+    private function verifyFailureResponse(Request $request, string $message, ?string $paymentId = null): RedirectResponse|JsonResponse
     {
         if ($request->expectsJson()) {
-            return response()->json(['message' => $message], 422);
+            return response()->json([
+                'status' => RenewTransaction::STATUS_FAILED,
+                'message' => $message,
+                'payment_id' => $paymentId,
+            ], 422);
         }
 
         return redirect()->route('subscription.index')->with([

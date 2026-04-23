@@ -1,10 +1,12 @@
 <?php
 
-use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ClinicConnectionController;
-use App\Http\Controllers\SharedReportController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\RazorpayWebhookController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
+use App\Http\Controllers\SharedReportController;
+use App\Http\Controllers\SubscriptionController;
 use App\Models\SharedReport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,7 +20,9 @@ Route::get('/', function () {
 Route::get('reports/{report:uuid}/pdf', [ReportPdfController::class, 'publicShow'])->name('reports.pdf');
 Route::get('reports/public/{report:uuid}/bill', [ReportPdfController::class, 'publicBill'])->name('reports.public.bill');
 
-Route::middleware(['auth'])->group(function () {
+Route::post('razorpay/webhook', [RazorpayWebhookController::class, 'handle'])->name('razorpay.webhook');
+
+Route::middleware(['auth', 'subscription.active'])->group(function () {
     Route::get('dashboard', function (Request $request) {
         $user = $request->user();
         $currentYear = now()->year;
@@ -75,6 +79,10 @@ Route::middleware(['auth'])->group(function () {
             'currentYear' => $currentYear,
         ]);
     })->name('dashboard');
+
+    Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::post('subscription/order', [SubscriptionController::class, 'createOrder'])->name('subscription.order');
+    Route::post('subscription/verify', [SubscriptionController::class, 'verify'])->name('subscription.verify');
 
     Route::get('departments/create-department', [DepartmentController::class, 'create'])->name('departments.create');
     Route::get('departments/all-department', [DepartmentController::class, 'index'])->name('departments.index');

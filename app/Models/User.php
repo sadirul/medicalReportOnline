@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -37,6 +38,7 @@ class User extends Authenticatable
         'is_verified',
         'otp_hash',
         'otp_expires_at',
+        'expiry_datetime',
     ];
 
     /**
@@ -72,7 +74,23 @@ class User extends Authenticatable
             'is_verified' => 'boolean',
             'sms_balance' => 'integer',
             'otp_expires_at' => 'datetime',
+            'expiry_datetime' => 'datetime',
         ];
+    }
+
+    public function isSubscriptionExpired(): bool
+    {
+        return $this->expiry_datetime !== null && $this->expiry_datetime->isPast();
+    }
+
+    public function extendAnnualSubscription(): void
+    {
+        $base = ($this->expiry_datetime !== null && $this->expiry_datetime->isFuture())
+            ? $this->expiry_datetime
+            : now();
+
+        $this->expiry_datetime = $base->copy()->addYear();
+        $this->save();
     }
 
     protected static function booted(): void
@@ -125,21 +143,21 @@ class User extends Authenticatable
 
     public function initiatedClinicConnections(): HasMany
     {
-        return $this->hasMany(\App\Models\ClinicConnection::class, 'clinic_user_id');
+        return $this->hasMany(ClinicConnection::class, 'clinic_user_id');
     }
 
     public function receivedClinicConnections(): HasMany
     {
-        return $this->hasMany(\App\Models\ClinicConnection::class, 'connected_clinic_user_id');
+        return $this->hasMany(ClinicConnection::class, 'connected_clinic_user_id');
     }
 
     public function sentSharedReports(): HasMany
     {
-        return $this->hasMany(\App\Models\SharedReport::class, 'sender_user_id');
+        return $this->hasMany(SharedReport::class, 'sender_user_id');
     }
 
     public function receivedSharedReports(): HasMany
     {
-        return $this->hasMany(\App\Models\SharedReport::class, 'receiver_user_id');
+        return $this->hasMany(SharedReport::class, 'receiver_user_id');
     }
 }

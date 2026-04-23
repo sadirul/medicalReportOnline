@@ -198,6 +198,7 @@ class RegisteredUserController extends Controller
         $user->is_verified = true;
         $user->otp_hash = null;
         $user->otp_expires_at = null;
+        $user->expiry_datetime = now()->addMonth();
         $user->save();
 
         $request->session()->forget(self::OTP_SESSION_USER_ID);

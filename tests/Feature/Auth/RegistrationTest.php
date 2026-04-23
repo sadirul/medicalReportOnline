@@ -48,5 +48,8 @@ class RegistrationTest extends TestCase
         $verifyResponse->assertRedirect(route('dashboard', absolute: false));
         $this->assertNotNull($user->unique_clinic_id);
         $this->assertTrue(str_starts_with($user->unique_clinic_id, 'MML'));
+        $this->assertNotNull($user->expiry_datetime);
+        $this->assertTrue($user->expiry_datetime->isFuture());
+        $this->assertTrue($user->expiry_datetime->lte(now()->addMonth()->addMinutes(5)));
     }
 }

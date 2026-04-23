@@ -48,7 +48,7 @@ class ReportPdfController extends Controller
 
     public function publicBill(Report $report): Response
     {
-        return $this->renderInlineBill($report);
+        return $this->renderInlineBill($report, true);
     }
 
     private function renderInlinePdf(Report $report, ?bool $forceHeaderFooter = null): Response
@@ -83,7 +83,7 @@ class ReportPdfController extends Controller
         return $pdf->stream('report-'.$report->memo_number.'.pdf');
     }
 
-    private function renderInlineBill(Report $report): Response
+    private function renderInlineBill(Report $report, bool $publicBillQrHeaderFooter = false): Response
     {
         $report->load(['items.investigation', 'user']);
         $clinic = $report->user;
@@ -100,6 +100,9 @@ class ReportPdfController extends Controller
 
         $subTotal = $lineItems->sum('amount');
         $qrPayload = route('reports.pdf', ['report' => $report->uuid]);
+        if ($publicBillQrHeaderFooter) {
+            $qrPayload .= '?header-footer=true';
+        }
 
         $pdf = Pdf::loadView('pdf.bill', [
             'report' => $report,

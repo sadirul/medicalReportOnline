@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, LockKeyhole, Phone } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
 
 interface LoginForm {
     mobile: string;
     password: string;
     remember: boolean;
+    [key: string]: string | boolean;
 }
 
 interface LoginProps {
@@ -36,75 +36,117 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Log in to your account" description="Enter your mobile number and password below to log in">
+        <>
             <Head title="Log in" />
 
-            <form className="flex flex-col gap-6" onSubmit={submit}>
-                <div className="grid gap-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <div className="border-b border-slate-200/70 pb-4 dark:border-slate-700">
-                        <div className="w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-800">
-                            <img src="/assets/images/icon.png" alt="App icon" className="h-auto w-full object-contain" />
+            <div className="grid min-h-screen bg-slate-100 lg:grid-cols-2">
+                <aside className="relative hidden overflow-hidden lg:block">
+                    <img src="/assets/images/landing-page/microscope.png" alt="Diagnostics lab microscope" className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/75 via-slate-900/45 to-transparent" />
+                    <div className="absolute right-0 bottom-0 left-0 p-10 text-white">
+                        <p className="text-sm font-medium tracking-wide text-blue-200">Medical Diagnocare Software</p>
+                        <h1 className="mt-2 text-4xl font-bold leading-tight">Manage diagnostics with clarity and speed.</h1>
+                        <p className="mt-3 max-w-md text-sm text-slate-200">
+                            Secure records, streamlined workflows, and faster report delivery for your clinic operations.
+                        </p>
+                    </div>
+                </aside>
+
+                <main className="flex items-center justify-center p-6 md:p-10">
+                    <div className="w-full max-w-md space-y-6">
+                        <div className="flex justify-center lg:hidden">
+                            <img src="/assets/images/icon.png" alt="App icon" className="h-auto w-32 object-contain" />
                         </div>
-                    </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="mobile">Mobile number</Label>
-                        <Input
-                            id="mobile"
-                            type="tel"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="tel"
-                            value={data.mobile}
-                            onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                            placeholder="10 digit mobile number"
-                        />
-                        <InputError message={errors.mobile} />
-                    </div>
+                        <div className="space-y-2 text-center lg:text-left">
+                            <h2 className="text-3xl font-bold text-slate-900">Log in to your account</h2>
+                            <p className="text-sm text-slate-600">Enter your mobile number and password below to continue.</p>
+                        </div>
 
-                    <div className="grid gap-2">
-                        <div className="flex items-center">
-                            <Label htmlFor="password">Password</Label>
-                            {canResetPassword && (
-                                <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
-                                    Forgot password?
-                                </TextLink>
+                        <form className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60" onSubmit={submit}>
+                            {status && (
+                                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
+                                    {status}
+                                </div>
                             )}
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="mobile">Mobile number</Label>
+                                <div className="relative">
+                                    <Phone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <Input
+                                        id="mobile"
+                                        type="tel"
+                                        required
+                                        autoFocus
+                                        tabIndex={1}
+                                        autoComplete="tel"
+                                        value={data.mobile}
+                                        onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        placeholder="10 digit mobile number"
+                                        className="h-11 pl-10"
+                                    />
+                                </div>
+                                <InputError message={errors.mobile} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="password">Password</Label>
+                                    {canResetPassword && (
+                                        <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
+                                            Forgot password?
+                                        </TextLink>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="current-password"
+                                        value={data.password}
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        placeholder="Password"
+                                        className="h-11 pl-10"
+                                    />
+                                </div>
+                                <InputError message={errors.password} />
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="remember"
+                                    name="remember"
+                                    tabIndex={3}
+                                    checked={data.remember}
+                                    onCheckedChange={(checked) => setData('remember', checked === true)}
+                                />
+                                <Label htmlFor="remember">Remember me</Label>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="h-11 w-full bg-linear-to-r from-blue-600 to-violet-600 text-sm font-semibold shadow-md transition hover:brightness-110"
+                                tabIndex={4}
+                                disabled={processing}
+                            >
+                                {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                                Log in
+                            </Button>
+                        </form>
+
+                        <div className="text-muted-foreground text-center text-sm lg:text-left">
+                            Don't have an account?{' '}
+                            <TextLink href={route('register')} tabIndex={5}>
+                                Sign up
+                            </TextLink>
                         </div>
-                        <Input
-                            id="password"
-                            type="password"
-                            required
-                            tabIndex={2}
-                            autoComplete="current-password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            placeholder="Password"
-                        />
-                        <InputError message={errors.password} />
                     </div>
-
-                    <div className="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" tabIndex={3} checked={data.remember} onCheckedChange={(checked) => setData('remember', checked === true)} />
-                        <Label htmlFor="remember">Remember me</Label>
-                    </div>
-
-                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Log in
-                    </Button>
-                </div>
-
-                <div className="text-muted-foreground text-center text-sm">
-                    Don't have an account?{' '}
-                    <TextLink href={route('register')} tabIndex={5}>
-                        Sign up
-                    </TextLink>
-                </div>
-            </form>
-
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
-        </AuthLayout>
+                </main>
+            </div>
+        </>
     );
 }

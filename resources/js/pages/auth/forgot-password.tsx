@@ -1,22 +1,37 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle, Phone } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
+import * as yup from 'yup';
 
-import InputError from '@/components/input-error';
+import { toFieldErrors } from '@/lib/yup-validation';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SharedData } from '@/types';
 
+const forgotPasswordSchema = yup.object({
+    mobile: yup.string().required('Mobile number is required.').matches(/^\d{10}$/, 'Please enter a valid 10 digit mobile number.'),
+});
+
 export default function ForgotPassword({ status }: { status?: string }) {
     const { errors } = usePage<SharedData>().props;
     const { data, setData, post, processing } = useForm({
         mobile: '',
     });
+    const [clientError, setClientError] = useState<string | null>(null);
 
-    const submit: FormEventHandler = (e) => {
+    const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+
+        try {
+            await forgotPasswordSchema.validate(data, { abortEarly: false });
+            setClientError(null);
+        } catch (error) {
+            const parsedErrors = toFieldErrors(error);
+            setClientError(parsedErrors.mobile ?? 'Please check your input.');
+            return;
+        }
 
         post(route('password.otp.send'));
     };
@@ -47,6 +62,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {status}
                                 </div>
                             )}
+                            {(clientError || errors.mobile) && (
+                                <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                                    {clientError ?? errors.mobile}
+                                </div>
+                            )}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="mobile">Mobile number</Label>
@@ -61,12 +81,14 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                         value={data.mobile}
                                         autoFocus
                                         maxLength={10}
-                                        onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        onChange={(e) => {
+                                            setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10));
+                                            setClientError(null);
+                                        }}
                                         placeholder="10-digit mobile"
                                         className="h-11 pl-10"
                                     />
                                 </div>
-                                <InputError message={errors.mobile} />
                             </div>
 
                             <Button

@@ -1,8 +1,10 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, LockKeyhole, Phone } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
+import * as yup from 'yup';
 
 import InputError from '@/components/input-error';
+import { toFieldErrors } from '@/lib/yup-validation';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,15 +23,36 @@ interface LoginProps {
     canResetPassword: boolean;
 }
 
+const loginSchema = yup.object({
+    mobile: yup.string().required('Mobile number is required.').matches(/^\d{10}$/, 'Please enter a valid 10 digit mobile number.'),
+    password: yup.string().required('Password is required.'),
+});
+
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
         mobile: '',
         password: '',
         remember: false,
     });
+    const [clientErrors, setClientErrors] = useState<{ mobile?: string; password?: string }>({});
 
-    const submit: FormEventHandler = (e) => {
+    const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+
+        try {
+            await loginSchema.validate(
+                {
+                    mobile: data.mobile,
+                    password: data.password,
+                },
+                { abortEarly: false },
+            );
+            setClientErrors({});
+        } catch (error) {
+            setClientErrors(toFieldErrors(error));
+            return;
+        }
+
         post(route('login'), {
             onFinish: () => reset('password'),
         });
@@ -82,12 +105,15 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         tabIndex={1}
                                         autoComplete="tel"
                                         value={data.mobile}
-                                        onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        onChange={(e) => {
+                                            setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10));
+                                            setClientErrors((prev) => ({ ...prev, mobile: undefined }));
+                                        }}
                                         placeholder="10 digit mobile number"
                                         className="h-11 pl-10"
                                     />
                                 </div>
-                                <InputError message={errors.mobile} />
+                                <InputError message={clientErrors.mobile ?? errors.mobile} />
                             </div>
 
                             <div className="grid gap-2">
@@ -108,12 +134,15 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         tabIndex={2}
                                         autoComplete="current-password"
                                         value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('password', e.target.value);
+                                            setClientErrors((prev) => ({ ...prev, password: undefined }));
+                                        }}
                                         placeholder="Password"
                                         className="h-11 pl-10"
                                     />
                                 </div>
-                                <InputError message={errors.password} />
+                                <InputError message={clientErrors.password ?? errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">

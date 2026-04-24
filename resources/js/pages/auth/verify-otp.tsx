@@ -1,8 +1,10 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle, ShieldCheck } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
+import * as yup from 'yup';
 
 import InputError from '@/components/input-error';
+import { toFieldErrors } from '@/lib/yup-validation';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,14 +16,28 @@ interface VerifyOtpForm {
     [key: string]: string;
 }
 
+const verifyOtpSchema = yup.object({
+    otp: yup.string().required('OTP is required.').matches(/^\d{6}$/, 'Please enter a valid 6 digit OTP.'),
+});
+
 export default function VerifyOtp({ mobile }: { mobile: string }) {
     const { flash } = usePage<SharedData>().props;
     const { data, setData, post, processing, errors } = useForm<VerifyOtpForm>({
         otp: '',
     });
+    const [clientError, setClientError] = useState<string | null>(null);
 
-    const submit: FormEventHandler = (e) => {
+    const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+
+        try {
+            await verifyOtpSchema.validate(data, { abortEarly: false });
+            setClientError(null);
+        } catch (error) {
+            const parsedErrors = toFieldErrors(error);
+            setClientError(parsedErrors.otp ?? 'Please check your OTP.');
+            return;
+        }
 
         post(route('register.otp.verify'));
     };
@@ -70,13 +86,16 @@ export default function VerifyOtp({ mobile }: { mobile: string }) {
                                         autoFocus
                                         maxLength={6}
                                         value={data.otp}
-                                        onChange={(e) => setData('otp', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        onChange={(e) => {
+                                            setData('otp', e.target.value.replace(/\D/g, '').slice(0, 6));
+                                            setClientError(null);
+                                        }}
                                         disabled={processing}
                                         placeholder="Enter 6 digit OTP"
                                         className="h-11 pl-10"
                                     />
                                 </div>
-                                <InputError message={errors.otp} />
+                                <InputError message={clientError ?? errors.otp} />
                             </div>
 
                             <Button

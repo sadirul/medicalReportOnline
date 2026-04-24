@@ -6,6 +6,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -30,5 +31,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (ThrottleRequestsException $exception, \Illuminate\Http\Request $request) {
+            if ($request->is('forgot-password*')) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'mobile' => __('Too many requests. Please wait a moment and try again.'),
+                    ]);
+            }
+
+            return null;
+        });
     })->create();

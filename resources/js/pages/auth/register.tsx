@@ -1,8 +1,10 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Building2, LoaderCircle, LockKeyhole, Mail, MapPin, Phone, UserRound } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
+import * as yup from 'yup';
 
 import InputError from '@/components/input-error';
+import { toFieldErrors } from '@/lib/yup-validation';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +22,19 @@ interface RegisterForm {
     [key: string]: string;
 }
 
+const registerSchema = yup.object({
+    full_name: yup.string().trim().required('Full name is required.'),
+    clinic_name: yup.string().trim().required('Clinic name is required.'),
+    mobile: yup.string().required('Mobile number is required.').matches(/^\d{10}$/, 'Please enter a valid 10 digit mobile number.'),
+    email: yup.string().required('Email is required.').email('Please enter a valid email address.'),
+    address: yup.string().trim().required('Address is required.'),
+    password: yup.string().required('Password is required.').min(8, 'Password must be at least 8 characters.'),
+    password_confirmation: yup
+        .string()
+        .required('Confirm password is required.')
+        .oneOf([yup.ref('password')], 'Passwords do not match.'),
+});
+
 export default function Register() {
     const { flash } = usePage<SharedData>().props;
 
@@ -32,9 +47,18 @@ export default function Register() {
         password_confirmation: '',
         address: '',
     });
+    const [clientErrors, setClientErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({});
 
-    const submit: FormEventHandler = (e) => {
+    const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+
+        try {
+            await registerSchema.validate(data, { abortEarly: false });
+            setClientErrors({});
+        } catch (error) {
+            setClientErrors(toFieldErrors(error) as Partial<Record<keyof RegisterForm, string>>);
+            return;
+        }
 
         post(route('register.otp.send'), {
             preserveScroll: true,
@@ -87,13 +111,16 @@ export default function Register() {
                                             tabIndex={1}
                                             autoComplete="name"
                                             value={data.full_name}
-                                            onChange={(e) => setData('full_name', e.target.value)}
+                                            onChange={(e) => {
+                                                setData('full_name', e.target.value);
+                                                setClientErrors((prev) => ({ ...prev, full_name: undefined }));
+                                            }}
                                             disabled={processing}
                                             placeholder="Full name"
                                             className="h-11 pl-10"
                                         />
                                     </div>
-                                    <InputError message={errors.full_name} />
+                                    <InputError message={clientErrors.full_name ?? errors.full_name} />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -106,13 +133,16 @@ export default function Register() {
                                             required
                                             tabIndex={2}
                                             value={data.clinic_name}
-                                            onChange={(e) => setData('clinic_name', e.target.value)}
+                                            onChange={(e) => {
+                                                setData('clinic_name', e.target.value);
+                                                setClientErrors((prev) => ({ ...prev, clinic_name: undefined }));
+                                            }}
                                             disabled={processing}
                                             placeholder="Clinic name"
                                             className="h-11 pl-10"
                                         />
                                     </div>
-                                    <InputError message={errors.clinic_name} />
+                                    <InputError message={clientErrors.clinic_name ?? errors.clinic_name} />
                                 </div>
                             </div>
 
@@ -128,13 +158,16 @@ export default function Register() {
                                             tabIndex={3}
                                             maxLength={10}
                                             value={data.mobile}
-                                            onChange={(e) => setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                            onChange={(e) => {
+                                                setData('mobile', e.target.value.replace(/\D/g, '').slice(0, 10));
+                                                setClientErrors((prev) => ({ ...prev, mobile: undefined }));
+                                            }}
                                             disabled={processing}
                                             placeholder="10 digit mobile number"
                                             className="h-11 pl-10"
                                         />
                                     </div>
-                                    <InputError message={errors.mobile} />
+                                    <InputError message={clientErrors.mobile ?? errors.mobile} />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -148,13 +181,16 @@ export default function Register() {
                                             tabIndex={4}
                                             autoComplete="email"
                                             value={data.email}
-                                            onChange={(e) => setData('email', e.target.value)}
+                                            onChange={(e) => {
+                                                setData('email', e.target.value);
+                                                setClientErrors((prev) => ({ ...prev, email: undefined }));
+                                            }}
                                             disabled={processing}
                                             placeholder="email@example.com"
                                             className="h-11 pl-10"
                                         />
                                     </div>
-                                    <InputError message={errors.email} />
+                                    <InputError message={clientErrors.email ?? errors.email} />
                                 </div>
                             </div>
 
@@ -168,13 +204,16 @@ export default function Register() {
                                         required
                                         tabIndex={5}
                                         value={data.address}
-                                        onChange={(e) => setData('address', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('address', e.target.value);
+                                            setClientErrors((prev) => ({ ...prev, address: undefined }));
+                                        }}
                                         disabled={processing}
                                         placeholder="Clinic address"
                                         className="h-11 pl-10"
                                     />
                                 </div>
-                                <InputError message={errors.address} />
+                                <InputError message={clientErrors.address ?? errors.address} />
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -189,13 +228,16 @@ export default function Register() {
                                             tabIndex={6}
                                             autoComplete="new-password"
                                             value={data.password}
-                                            onChange={(e) => setData('password', e.target.value)}
+                                            onChange={(e) => {
+                                                setData('password', e.target.value);
+                                                setClientErrors((prev) => ({ ...prev, password: undefined }));
+                                            }}
                                             disabled={processing}
                                             placeholder="Password"
                                             className="h-11 pl-10"
                                         />
                                     </div>
-                                    <InputError message={errors.password} />
+                                    <InputError message={clientErrors.password ?? errors.password} />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -209,13 +251,16 @@ export default function Register() {
                                             tabIndex={7}
                                             autoComplete="new-password"
                                             value={data.password_confirmation}
-                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                            onChange={(e) => {
+                                                setData('password_confirmation', e.target.value);
+                                                setClientErrors((prev) => ({ ...prev, password_confirmation: undefined }));
+                                            }}
                                             disabled={processing}
                                             placeholder="Confirm password"
                                             className="h-11 pl-10"
                                         />
                                     </div>
-                                    <InputError message={errors.password_confirmation} />
+                                    <InputError message={clientErrors.password_confirmation ?? errors.password_confirmation} />
                                 </div>
                             </div>
 

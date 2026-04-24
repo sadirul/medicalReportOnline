@@ -1,8 +1,10 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
+import * as yup from 'yup';
 
 import InputError from '@/components/input-error';
+import { toFieldErrors } from '@/lib/yup-validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,14 +20,32 @@ interface ResetPasswordForm {
     password_confirmation: string;
 }
 
+const resetPasswordSchema = yup.object({
+    password: yup.string().required('Password is required.').min(8, 'Password must be at least 8 characters.'),
+    password_confirmation: yup
+        .string()
+        .required('Confirm password is required.')
+        .oneOf([yup.ref('password')], 'Passwords do not match.'),
+});
+
 export default function ResetPassword({ mobile }: ResetPasswordProps) {
     const { data, setData, post, processing, errors, reset } = useForm<ResetPasswordForm>({
         password: '',
         password_confirmation: '',
     });
+    const [clientErrors, setClientErrors] = useState<{ password?: string; password_confirmation?: string }>({});
 
-    const submit: FormEventHandler = (e) => {
+    const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+
+        try {
+            await resetPasswordSchema.validate(data, { abortEarly: false });
+            setClientErrors({});
+        } catch (error) {
+            setClientErrors(toFieldErrors(error));
+            return;
+        }
+
         post(route('password.store'), {
             onFinish: () => reset('password', 'password_confirmation'),
         });
@@ -57,10 +77,13 @@ export default function ResetPassword({ mobile }: ResetPasswordProps) {
                             value={data.password}
                             className="mt-1 block w-full"
                             autoFocus
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={(e) => {
+                                setData('password', e.target.value);
+                                setClientErrors((prev) => ({ ...prev, password: undefined }));
+                            }}
                             placeholder="Password"
                         />
-                        <InputError message={errors.password} />
+                        <InputError message={clientErrors.password ?? errors.password} />
                     </div>
 
                     <div className="grid gap-2">
@@ -72,10 +95,13 @@ export default function ResetPassword({ mobile }: ResetPasswordProps) {
                             autoComplete="new-password"
                             value={data.password_confirmation}
                             className="mt-1 block w-full"
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                            onChange={(e) => {
+                                setData('password_confirmation', e.target.value);
+                                setClientErrors((prev) => ({ ...prev, password_confirmation: undefined }));
+                            }}
                             placeholder="Confirm password"
                         />
-                        <InputError message={errors.password_confirmation} className="mt-2" />
+                        <InputError message={clientErrors.password_confirmation ?? errors.password_confirmation} className="mt-2" />
                     </div>
 
                     <Button type="submit" className="mt-4 w-full" disabled={processing}>

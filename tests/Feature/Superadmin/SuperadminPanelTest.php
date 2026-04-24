@@ -182,6 +182,40 @@ class SuperadminPanelTest extends TestCase
         $response->assertDontSee('FILTER-TXN-2');
     }
 
+    public function test_superadmin_can_view_password_settings_page(): void
+    {
+        $superadmin = Superadmin::query()->create([
+            'name' => 'Admin',
+            'login_id' => 'admin_settings',
+            'password' => 'password',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($superadmin, 'superadmin')->get('/superadmin/settings/password');
+
+        $response->assertStatus(200);
+        $response->assertSee('superadmin/settings/password');
+    }
+
+    public function test_superadmin_can_update_password_from_settings(): void
+    {
+        $superadmin = Superadmin::query()->create([
+            'name' => 'Admin',
+            'login_id' => 'admin_pw',
+            'password' => 'password',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($superadmin, 'superadmin')->put('/superadmin/settings/password', [
+            'current_password' => 'password',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('new-password-123', $superadmin->fresh()->password));
+    }
+
     public function test_clinic_status_filter_supports_expired_and_active(): void
     {
         $superadmin = Superadmin::query()->create([

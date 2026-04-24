@@ -8,6 +8,7 @@ use App\Http\Controllers\ReportPdfController;
 use App\Http\Controllers\SharedReportController;
 use App\Http\Controllers\Superadmin\AuthController as SuperadminAuthController;
 use App\Http\Controllers\Superadmin\ClinicController as SuperadminClinicController;
+use App\Http\Controllers\Superadmin\PasswordController as SuperadminPasswordController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\SharedReport;
 use Carbon\Carbon;
@@ -62,6 +63,8 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
     Route::middleware('superadmin.auth')->group(function () {
         Route::get('/', [SuperadminClinicController::class, 'dashboard'])->name('dashboard');
         Route::get('transactions', [SuperadminClinicController::class, 'transactions'])->name('transactions.index');
+        Route::get('settings/password', [SuperadminPasswordController::class, 'edit'])->name('password.edit');
+        Route::put('settings/password', [SuperadminPasswordController::class, 'update'])->name('password.update');
         Route::get('clinics', [SuperadminClinicController::class, 'index'])->name('clinics.index');
         Route::get('clinics/{user}', [SuperadminClinicController::class, 'show'])->name('clinics.show');
         Route::post('clinics/{user}/sms/add', [SuperadminClinicController::class, 'addSms'])->name('clinics.sms.add');

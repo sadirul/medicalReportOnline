@@ -5,7 +5,7 @@
     <title>Shared Lab Report</title>
     <style>
         @page { margin: 120px 40px 105px 40px; }
-        body { font-family: DejaVu Sans, sans-serif; color: #111827; font-size: 12px; margin: 0; padding: 0; }
+        html, body { font-family: DejaVu Serif, "Times New Roman", Times, serif; color: #111827; font-size: 12px; }
         .header { position: fixed; top: -120px; left: -40px; right: -40px; height: 100px; }
         .footer { position: fixed; bottom: -105px; left: -40px; right: -40px; height: auto; }
         .banner { width: 100%; height: auto; display: block; }
@@ -18,6 +18,7 @@
         .interval { display: inline-block; width: 34%; vertical-align: top; }
         .department-block { page-break-inside: avoid; break-inside: avoid-page; margin-bottom: 14px; }
         .department-block:last-of-type { margin-bottom: 0; }
+        .end-report { margin-top: 20px; padding-top: 12px; border-top: 1px solid #d1d5db; text-align: center; letter-spacing: 0.06em; }
         .meta-row { margin: 2px 0; }
         .meta-label { display: inline-block; width: 130px; font-weight: 700; }
         .meta-colon { display: inline-block; width: 14px; text-align: center; font-weight: 700; }
@@ -58,7 +59,7 @@
         <div class="columns-head">
             <span class="investigation">INVESTIGATION</span>
             <span class="result">RESULT</span>
-            <span class="interval">BIOLOGICAL REFERENCE INTERVAL</span>
+            <span class="interval">BIO. REF. INTERVAL</span>
         </div>
 
         @foreach($group['items'] as $item)
@@ -74,5 +75,7 @@
         @endforeach
     </div>
 @endforeach
+
+<div class="end-report">*** End of Report ***</div>
 </body>
 </html>

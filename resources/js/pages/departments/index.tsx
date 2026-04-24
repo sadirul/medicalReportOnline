@@ -137,7 +137,7 @@ export default function Departments({ departments }: { departments: Department[]
                             <InputError message={investigationForm.errors.unit} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="bio_ref_interval">Biological reference interval</Label>
+                            <Label htmlFor="bio_ref_interval">BIO. REF. INTERVAL</Label>
                             <Input
                                 id="bio_ref_interval"
                                 value={investigationForm.data.bio_ref_interval}

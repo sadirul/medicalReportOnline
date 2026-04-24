@@ -8,12 +8,11 @@
             margin: 120px 40px 105px 40px;
         }
 
+        html,
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: DejaVu Serif, "Times New Roman", Times, serif;
             color: #111827;
             font-size: 12px;
-            margin: 0;
-            padding: 0;
         }
 
         .header {
@@ -60,7 +59,7 @@
 
         .patient-meta {
             width: 100%;
-            margin: 8px 0 12px;
+            margin: 10px 0 12px;
             font-size: 12px;
             line-height: 1.25;
         }
@@ -166,6 +165,14 @@
             text-align: right;
             margin-top: 6px;
         }
+
+        .end-report {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #d1d5db;
+            text-align: center;
+            letter-spacing: 0.06em;
+        }
     </style>
 </head>
 <body>
@@ -240,7 +247,7 @@
         <div class="columns-head">
             <span class="investigation">INVESTIGATION</span>
             <span class="result">RESULT</span>
-            <span class="interval">BIOLOGICAL REFERENCE INTERVAL</span>
+            <span class="interval">BIO. REF. INTERVAL</span>
         </div>
 
         @foreach($group['items'] as $item)
@@ -258,6 +265,8 @@
         @endforeach
     </div>
 @endforeach
+
+<div class="end-report">*** End of Report ***</div>
 
 @if($report->sample_note || $report->equipment_note || $report->interpretation_note)
     <div class="note">

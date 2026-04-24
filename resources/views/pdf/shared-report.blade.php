@@ -43,7 +43,7 @@
 
 <div class="patient-meta">
     <div class="meta-row"><span class="meta-label">Patient Name</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_name ?: '-') }}</span></div>
-    <div class="meta-row"><span class="meta-label">Age/Sex</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->patient_age }} Y / {{ ucfirst(strtolower($sharedReport->patient_sex ?: '-')) }}</span></div>
+    <div class="meta-row"><span class="meta-label">Age/Gender</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->patient_age }} Y / {{ ucfirst(strtolower($sharedReport->patient_sex ?: '-')) }}</span></div>
     <div class="meta-row"><span class="meta-label">Address</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_address ?: '-') }}</span></div>
     <div class="meta-row"><span class="meta-label">Referred By</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_referred_by ?: '-') }}</span></div>
     <div class="meta-row"><span class="meta-label">Billing Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>

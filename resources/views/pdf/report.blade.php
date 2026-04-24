@@ -193,7 +193,7 @@
             <span class="investigation">{{ strtoupper($report->patient_name ?: '-') }}</span>
         </div>
         <div class="meta-row">
-            <span class="meta-label">Age/Sex</span>
+            <span class="meta-label">Age/Gender</span>
             <span class="meta-colon">:</span>
             <span class="investigation">{{ $report->patient_age }} Y / {{ ucfirst(strtolower($report->patient_sex ?: '-')) }}</span>
         </div>

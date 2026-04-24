@@ -89,7 +89,7 @@
 <table width="100%" border="1" cellpadding="2" cellspacing="0" style="margin-bottom: 4px;">
     <tr>
         <td><strong>Name:</strong> {{ $report->patient_name }}</td>
-        <td><strong>Age/Sex:</strong> {{ $report->patient_age }} / {{ $report->patient_sex }}</td>
+        <td><strong>Age/Gender:</strong> {{ $report->patient_age }} / {{ $report->patient_sex }}</td>
     </tr>
     <tr>
         <td><strong>Address:</strong> {{ $report->patient_address ?: '-' }}</td>

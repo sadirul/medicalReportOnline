@@ -6,6 +6,8 @@ use App\Http\Controllers\RazorpayWebhookController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
 use App\Http\Controllers\SharedReportController;
+use App\Http\Controllers\Superadmin\AuthController as SuperadminAuthController;
+use App\Http\Controllers\Superadmin\ClinicController as SuperadminClinicController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\SharedReport;
 use Carbon\Carbon;
@@ -50,6 +52,23 @@ Route::get('reports/{report:uuid}/pdf', [ReportPdfController::class, 'publicShow
 Route::get('reports/public/{report:uuid}/bill', [ReportPdfController::class, 'publicBill'])->name('reports.public.bill');
 
 Route::post('razorpay/webhook', [RazorpayWebhookController::class, 'handle'])->name('razorpay.webhook');
+
+Route::prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::middleware('guest:superadmin')->group(function () {
+        Route::get('login', [SuperadminAuthController::class, 'create'])->name('login');
+        Route::post('login', [SuperadminAuthController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware('superadmin.auth')->group(function () {
+        Route::get('/', [SuperadminClinicController::class, 'dashboard'])->name('dashboard');
+        Route::get('transactions', [SuperadminClinicController::class, 'transactions'])->name('transactions.index');
+        Route::get('clinics', [SuperadminClinicController::class, 'index'])->name('clinics.index');
+        Route::get('clinics/{user}', [SuperadminClinicController::class, 'show'])->name('clinics.show');
+        Route::post('clinics/{user}/sms/add', [SuperadminClinicController::class, 'addSms'])->name('clinics.sms.add');
+        Route::post('clinics/{user}/expiry/update', [SuperadminClinicController::class, 'updateExpiryDatetime'])->name('clinics.expiry.update');
+        Route::post('logout', [SuperadminAuthController::class, 'destroy'])->name('logout');
+    });
+});
 
 Route::middleware(['auth', 'subscription.active'])->group(function () {
     Route::get('dashboard', function (Request $request) {

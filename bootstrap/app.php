@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureSubscriptionActive;
+use App\Http\Middleware\AuthenticateSuperadmin;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'subscription.active' => EnsureSubscriptionActive::class,
+            'superadmin.auth' => AuthenticateSuperadmin::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

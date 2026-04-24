@@ -11,7 +11,7 @@
         .banner { width: 100%; height: auto; display: block; }
         .blank-banner { width: 100%; height: 100%; }
         .section-title { font-weight: bold; text-transform: uppercase; margin: 10px 0 14px; text-align: center; text-decoration: underline; }
-        .columns-head { font-size: 12px; font-weight: 700; text-decoration: underline; margin-bottom: 8px; }
+        .columns-head { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
         .result-line { font-size: 12px; line-height: 1.35; }
         .investigation { display: inline-block; width: 42%; vertical-align: top; }
         .result { display: inline-block; width: 22%; vertical-align: top; }

@@ -107,7 +107,6 @@
         .columns-head {
             font-size: 12px;
             font-weight: 700;
-            text-decoration: underline;
             margin-bottom: 8px;
         }
 
@@ -266,8 +265,6 @@
     </div>
 @endforeach
 
-<div class="end-report">*** End of Report ***</div>
-
 @if($report->sample_note || $report->equipment_note || $report->interpretation_note)
     <div class="note">
         @if($report->sample_note)
@@ -281,5 +278,7 @@
         @endif
     </div>
 @endif
+
+<div class="end-report">*** End of Report ***</div>
 </body>
 </html>

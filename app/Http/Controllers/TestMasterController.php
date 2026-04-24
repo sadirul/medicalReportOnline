@@ -40,7 +40,7 @@ class TestMasterController extends Controller
 
     public function update(StoreTestMasterRequest $request, TestMaster $testMaster): RedirectResponse
     {
-        abort_unless($testMaster->user_id === $request->user()->id, 403);
+        abort_unless((int) $testMaster->user_id === (int) $request->user()->id, 403);
 
         $payload = $request->validated();
         $payload['display_order'] = $payload['display_order'] ?? 0;

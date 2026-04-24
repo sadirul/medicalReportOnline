@@ -35,7 +35,7 @@ class PatientController extends Controller
 
     public function update(StorePatientRequest $request, Patient $patient): RedirectResponse
     {
-        abort_unless($patient->user_id === $request->user()->id, 403);
+        abort_unless((int) $patient->user_id === (int) $request->user()->id, 403);
 
         $patient->update($request->validated());
 

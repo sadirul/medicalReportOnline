@@ -13,7 +13,7 @@ class ReportPdfController extends Controller
 {
     public function show(Request $request, Report $report): Response
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
         if ($report->publication_status !== 'released') {
             return response()->view('reports.not-released', [
                 'message' => 'Report yet not Released',
@@ -41,7 +41,7 @@ class ReportPdfController extends Controller
 
     public function bill(Request $request, Report $report): Response
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
 
         return $this->renderInlineBill($report);
     }

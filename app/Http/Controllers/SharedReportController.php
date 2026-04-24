@@ -260,7 +260,7 @@ class SharedReportController extends Controller
 
     public function editClientReport(Request $request, SharedReport $sharedReport): Response
     {
-        abort_unless($sharedReport->receiver_user_id === $request->user()->id, 403);
+        abort_unless((int) $sharedReport->receiver_user_id === (int) $request->user()->id, 403);
 
         if ($sharedReport->status === 'sent') {
             $sharedReport->update([
@@ -292,7 +292,7 @@ class SharedReportController extends Controller
 
     public function showClientReport(Request $request, SharedReport $sharedReport): Response
     {
-        abort_unless($sharedReport->receiver_user_id === $request->user()->id, 403);
+        abort_unless((int) $sharedReport->receiver_user_id === (int) $request->user()->id, 403);
 
         if ($sharedReport->status === 'sent') {
             $sharedReport->update([
@@ -310,7 +310,7 @@ class SharedReportController extends Controller
 
     public function updateClientReport(Request $request, SharedReport $sharedReport): RedirectResponse
     {
-        abort_unless($sharedReport->receiver_user_id === $request->user()->id, 403);
+        abort_unless((int) $sharedReport->receiver_user_id === (int) $request->user()->id, 403);
 
         $validated = $request->validate([
             'patient_name' => ['required', 'string', 'max:255'],
@@ -391,7 +391,7 @@ class SharedReportController extends Controller
 
     public function publishClientReport(Request $request, SharedReport $sharedReport): RedirectResponse
     {
-        abort_unless($sharedReport->receiver_user_id === $request->user()->id, 403);
+        abort_unless((int) $sharedReport->receiver_user_id === (int) $request->user()->id, 403);
 
         $hasEmptyValues = $sharedReport->items()
             ->where(function ($query): void {
@@ -421,7 +421,7 @@ class SharedReportController extends Controller
     public function downloadPdf(Request $request, SharedReport $sharedReport): HttpResponse
     {
         abort_unless(
-            $sharedReport->sender_user_id === $request->user()->id || $sharedReport->receiver_user_id === $request->user()->id,
+            (int) $sharedReport->sender_user_id === (int) $request->user()->id || (int) $sharedReport->receiver_user_id === (int) $request->user()->id,
             403
         );
 
@@ -461,7 +461,7 @@ class SharedReportController extends Controller
     public function downloadBill(Request $request, SharedReport $sharedReport): HttpResponse
     {
         abort_unless(
-            $sharedReport->sender_user_id === $request->user()->id || $sharedReport->receiver_user_id === $request->user()->id,
+            (int) $sharedReport->sender_user_id === (int) $request->user()->id || (int) $sharedReport->receiver_user_id === (int) $request->user()->id,
             403
         );
 

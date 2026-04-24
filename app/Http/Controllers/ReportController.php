@@ -103,7 +103,7 @@ class ReportController extends Controller
 
     public function edit(Request $request, Report $report): Response
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
 
         $departments = $request->user()
             ->departments()
@@ -211,7 +211,7 @@ class ReportController extends Controller
 
     public function release(Request $request, Report $report): RedirectResponse
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
 
         $hasEmptyResultValue = $report->items()
             ->where(function ($query): void {
@@ -242,7 +242,7 @@ class ReportController extends Controller
 
     public function update(StoreReportRequest $request, Report $report): RedirectResponse
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
 
         $validated = $request->validated();
         $investigationAmounts = Investigation::query()
@@ -305,7 +305,7 @@ class ReportController extends Controller
 
     public function sendWhatsApp(Request $request, Report $report): RedirectResponse
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
 
         if ($report->publication_status !== 'released') {
             return back()->with([
@@ -395,7 +395,7 @@ class ReportController extends Controller
 
     public function show(Request $request, Report $report): Response
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless((int) $report->user_id === (int) $request->user()->id, 403);
 
         if (! $report->uuid) {
             $report->forceFill([

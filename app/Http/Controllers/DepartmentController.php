@@ -40,7 +40,7 @@ class DepartmentController extends Controller
 
     public function show(Request $request, Department $department): Response
     {
-        abort_unless($department->user_id === $request->user()->id, 403);
+        abort_unless((int) $department->user_id === (int) $request->user()->id, 403);
 
         $department->load('investigations');
 
@@ -61,7 +61,7 @@ class DepartmentController extends Controller
 
     public function update(StoreDepartmentRequest $request, Department $department): RedirectResponse
     {
-        abort_unless($department->user_id === $request->user()->id, 403);
+        abort_unless((int) $department->user_id === (int) $request->user()->id, 403);
 
         $department->update($request->validated());
 
@@ -73,7 +73,7 @@ class DepartmentController extends Controller
 
     public function storeInvestigation(StoreInvestigationRequest $request, Department $department): RedirectResponse
     {
-        abort_unless($department->user_id === $request->user()->id, 403);
+        abort_unless((int) $department->user_id === (int) $request->user()->id, 403);
 
         $payload = $request->validated();
         $department->investigations()->create([
@@ -92,7 +92,7 @@ class DepartmentController extends Controller
     public function updateInvestigation(StoreInvestigationRequest $request, Investigation $investigation): RedirectResponse
     {
         $investigation->loadMissing('department');
-        abort_unless($investigation->department && $investigation->department->user_id === $request->user()->id, 403);
+        abort_unless($investigation->department && (int) $investigation->department->user_id === (int) $request->user()->id, 403);
 
         $payload = $request->validated();
         $investigation->update([

@@ -4,17 +4,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler, useEffect, useState } from 'react';
+import { FormEventHandler } from 'react';
 
 interface LoginForm {
     login_id: string;
     password: string;
     remember: boolean;
-}
-
-interface BeforeInstallPromptEvent extends Event {
-    prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+    [key: string]: string | boolean;
 }
 
 export default function SuperadminLogin({ status }: { status?: string }) {
@@ -23,22 +19,6 @@ export default function SuperadminLogin({ status }: { status?: string }) {
         password: '',
         remember: false,
     });
-    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-    const [isInstalling, setIsInstalling] = useState(false);
-    const [isStandalone, setIsStandalone] = useState(false);
-
-    useEffect(() => {
-        const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
-        setIsStandalone(standaloneMode);
-
-        const handleBeforeInstallPrompt = (event: Event) => {
-            event.preventDefault();
-            setDeferredPrompt(event as BeforeInstallPromptEvent);
-        };
-
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    }, []);
 
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
@@ -46,8 +26,6 @@ export default function SuperadminLogin({ status }: { status?: string }) {
             onFinish: () => reset('password'),
         });
     };
-
-
 
     return (
         <>

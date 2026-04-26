@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle, LockKeyhole, Phone } from 'lucide-react';
+import { Download, LoaderCircle, LockKeyhole, Phone } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import * as yup from 'yup';
 
@@ -53,8 +53,18 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             setDeferredPrompt(event as BeforeInstallPromptEvent);
         };
 
+        const handleAppInstalled = () => {
+            setDeferredPrompt(null);
+            setIsStandalone(true);
+        };
+
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.addEventListener('appinstalled', handleAppInstalled);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener('appinstalled', handleAppInstalled);
+        };
     }, []);
 
     const submit: FormEventHandler = async (e) => {
@@ -86,10 +96,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         }
 
         setIsInstalling(true);
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        setDeferredPrompt(null);
-        setIsInstalling(false);
+        try {
+            await deferredPrompt.prompt();
+            await deferredPrompt.userChoice;
+            setDeferredPrompt(null);
+        } finally {
+            setIsInstalling(false);
+        }
     };
 
     return (
@@ -120,7 +133,20 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             <p className="text-sm text-slate-600">Enter your mobile number and password below to continue.</p>
                         </div>
 
-                        <form className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60" onSubmit={submit}>
+                        <div className="relative pt-4">
+                            {!isStandalone && deferredPrompt && (
+                                <Button
+                                    type="button"
+                                    onClick={handleInstallClick}
+                                    disabled={isInstalling}
+                                    className="absolute -top-3 right-4 h-10 rounded-full border border-slate-200/70 bg-linear-to-r from-slate-900 via-indigo-700 to-blue-600 px-5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:scale-[1.02] hover:from-slate-800 hover:via-indigo-600 hover:to-blue-500"
+                                >
+                                    <Download className="mr-1 h-4 w-4" />
+                                    {isInstalling ? 'Installing...' : 'Install App'}
+                                </Button>
+                            )}
+
+                            <form className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60" onSubmit={submit}>
                             {status && (
                                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
                                     {status}
@@ -199,7 +225,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                                 Log in
                             </Button>
-                        </form>
+                            </form>
+                        </div>
 
                         <div className="text-muted-foreground text-center text-sm lg:text-left">
                             Don't have an account?{' '}

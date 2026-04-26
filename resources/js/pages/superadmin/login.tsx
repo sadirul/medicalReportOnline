@@ -4,12 +4,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 
 interface LoginForm {
     login_id: string;
     password: string;
     remember: boolean;
+}
+
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
 export default function SuperadminLogin({ status }: { status?: string }) {
@@ -18,12 +23,41 @@ export default function SuperadminLogin({ status }: { status?: string }) {
         password: '',
         remember: false,
     });
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstalling, setIsInstalling] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
+
+    useEffect(() => {
+        const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+        setIsStandalone(standaloneMode);
+
+        const handleBeforeInstallPrompt = (event: Event) => {
+            event.preventDefault();
+            setDeferredPrompt(event as BeforeInstallPromptEvent);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }, []);
 
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
         post(route('superadmin.login.store'), {
             onFinish: () => reset('password'),
         });
+    };
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) {
+            window.alert('Install option is available in browser menu: choose "Install app" or "Add to Home Screen".');
+            return;
+        }
+
+        setIsInstalling(true);
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        setDeferredPrompt(null);
+        setIsInstalling(false);
     };
 
     return (
@@ -39,6 +73,12 @@ export default function SuperadminLogin({ status }: { status?: string }) {
                     </div>
 
                     {status && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{status}</div>}
+
+                    {!isStandalone && (
+                        <Button type="button" variant="outline" onClick={handleInstallClick} disabled={isInstalling} className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                            {isInstalling ? 'Installing...' : 'Install App'}
+                        </Button>
+                    )}
 
                     <form className="space-y-4" onSubmit={submit}>
                         <div className="grid gap-2">

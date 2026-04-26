@@ -38,3 +38,9 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+        console.error('Service worker registration failed:', error);
+    });
+}

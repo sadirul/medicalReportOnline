@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, LockKeyhole, Phone } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 import InputError from '@/components/input-error';
@@ -23,6 +23,11 @@ interface LoginProps {
     canResetPassword: boolean;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 const loginSchema = yup.object({
     mobile: yup.string().required('Mobile number is required.').matches(/^\d{10}$/, 'Please enter a valid 10 digit mobile number.'),
     password: yup.string().required('Password is required.'),
@@ -35,6 +40,22 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         remember: false,
     });
     const [clientErrors, setClientErrors] = useState<{ mobile?: string; password?: string }>({});
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstalling, setIsInstalling] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
+
+    useEffect(() => {
+        const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+        setIsStandalone(standaloneMode);
+
+        const handleBeforeInstallPrompt = (event: Event) => {
+            event.preventDefault();
+            setDeferredPrompt(event as BeforeInstallPromptEvent);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }, []);
 
     const submit: FormEventHandler = async (e) => {
         e.preventDefault();
@@ -56,6 +77,19 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         post(route('login'), {
             onFinish: () => reset('password'),
         });
+    };
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) {
+            window.alert('Install option is available in browser menu: choose "Install app" or "Add to Home Screen".');
+            return;
+        }
+
+        setIsInstalling(true);
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        setDeferredPrompt(null);
+        setIsInstalling(false);
     };
 
     return (
@@ -85,6 +119,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             <h2 className="text-3xl font-bold text-slate-900">Log in to your account</h2>
                             <p className="text-sm text-slate-600">Enter your mobile number and password below to continue.</p>
                         </div>
+
+                        {!isStandalone && (
+                            <Button type="button" variant="outline" className="h-11 w-full border-blue-200 text-blue-700 hover:bg-blue-50" onClick={handleInstallClick} disabled={isInstalling}>
+                                {isInstalling ? 'Installing...' : 'Install App'}
+                            </Button>
+                        )}
 
                         <form className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60" onSubmit={submit}>
                             {status && (

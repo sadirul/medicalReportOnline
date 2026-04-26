@@ -1,8 +1,9 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,7 +13,7 @@ import { appNavIcons, utilityNavIcons } from '@/lib/icon-map';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, Search } from 'lucide-react';
+import { Bell, FileText, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -45,13 +46,15 @@ interface AppHeaderProps {
 
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
-    const { auth } = page.props;
+    const { auth, notifications } = page.props;
     const getInitials = useInitials();
     const profileImage = auth.user.logo
         ? auth.user.logo.startsWith('http') || auth.user.logo.startsWith('/')
             ? auth.user.logo
             : `/storage/${auth.user.logo}`
         : auth.user.avatar;
+    const unreadCount = notifications?.unread_count ?? 0;
+    const notificationItems = notifications?.items ?? [];
 
     return (
         <>
@@ -166,6 +169,79 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </div>
                         </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="relative h-9 w-9 cursor-pointer">
+                                    <Bell className="!size-5 opacity-80 hover:opacity-100" />
+                                    {unreadCount > 0 && (
+                                        <Badge className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-white">
+                                            {unreadCount > 99 ? '99+' : unreadCount}
+                                        </Badge>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-80 p-0" align="end">
+                                <div className="flex items-center justify-between px-3 py-2">
+                                    <DropdownMenuLabel className="p-0 text-sm font-semibold">Notifications</DropdownMenuLabel>
+                                    {unreadCount > 0 && (
+                                        <Link
+                                            as="button"
+                                            method="post"
+                                            href={route('notifications.read-all')}
+                                            className="text-xs text-blue-600 hover:underline"
+                                        >
+                                            Mark all as read
+                                        </Link>
+                                    )}
+                                </div>
+                                <DropdownMenuSeparator />
+                                <div className="max-h-96 overflow-auto p-1">
+                                    {notificationItems.length === 0 && (
+                                        <p className="px-2 py-6 text-center text-sm text-neutral-500">No notifications yet.</p>
+                                    )}
+
+                                    {notificationItems.map((notification) => {
+                                        const actorLogo = notification.actor_logo
+                                            ? notification.actor_logo.startsWith('http') || notification.actor_logo.startsWith('/')
+                                                ? notification.actor_logo
+                                                : `/storage/${notification.actor_logo}`
+                                            : null;
+
+                                        return (
+                                            <Link
+                                                key={notification.id}
+                                                as="button"
+                                                method="post"
+                                                href={route('notifications.read', notification.id)}
+                                                className={cn(
+                                                    'flex w-full items-start gap-3 rounded-md px-2 py-2 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800',
+                                                    notification.read_at === null && 'bg-blue-50/60 dark:bg-blue-950/20',
+                                                )}
+                                            >
+                                                {notification.icon_type === 'report' ? (
+                                                    <span className="mt-0.5 rounded-md bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                                        <FileText className="h-4 w-4" />
+                                                    </span>
+                                                ) : (
+                                                    <Avatar className="mt-0.5 h-8 w-8">
+                                                        <AvatarImage src={actorLogo ?? undefined} alt={notification.actor_name || 'Notification'} />
+                                                        <AvatarFallback className="text-xs">
+                                                            {notification.actor_initials || getInitials(notification.actor_name || 'SC')}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                )}
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-medium">{notification.title}</p>
+                                                    <p className="mt-0.5 line-clamp-2 text-xs text-neutral-600 dark:text-neutral-300">
+                                                        {notification.message}
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="size-10 rounded-full p-1">

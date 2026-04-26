@@ -7,7 +7,10 @@ use App\Models\Department;
 use App\Models\Investigation;
 use App\Models\SharedReport;
 use App\Models\User;
+use App\Notifications\IncomingSharedReportNotification;
+use App\Notifications\SharedReportPublishedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\DatabaseNotification;
 use Tests\TestCase;
 
 class SharedReportWorkflowTest extends TestCase
@@ -73,6 +76,15 @@ class SharedReportWorkflowTest extends TestCase
             'receiver_user_id' => $receiver->id,
             'status' => 'sent',
         ]);
+
+        $notification = $receiver->notifications()->latest()->first();
+        $this->assertNotNull($notification);
+        $this->assertSame(IncomingSharedReportNotification::class, $notification->type);
+        $this->assertStringContainsString($sender->clinic_name, (string) data_get($notification->data, 'message', ''));
+        $this->assertSame(
+            route('clinics.client.show', SharedReport::query()->latest('id')->first()),
+            data_get($notification->data, 'target_url')
+        );
     }
 
     public function test_sender_cannot_send_to_non_connected_clinic(): void
@@ -195,5 +207,47 @@ class SharedReportWorkflowTest extends TestCase
         $this->assertSame('published', $sharedReport->status);
 
         $this->actingAs($sender)->get(route('clinics.shared.pdf', $sharedReport->uuid))->assertOk();
+
+        $publishNotification = $sender->notifications()->latest()->first();
+        $this->assertNotNull($publishNotification);
+        $this->assertSame(SharedReportPublishedNotification::class, $publishNotification->type);
+        $this->assertStringContainsString($receiver->clinic_name, (string) data_get($publishNotification->data, 'message', ''));
+        $this->assertSame(route('clinics.requested.index'), data_get($publishNotification->data, 'target_url'));
+    }
+
+    public function test_notification_mark_as_read_is_user_scoped(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $owner->notify(new IncomingSharedReportNotification(
+            SharedReport::query()->create([
+                'sender_user_id' => $otherUser->id,
+                'receiver_user_id' => $owner->id,
+                'status' => 'sent',
+                'patient_name' => 'Scoped',
+                'patient_age' => 30,
+                'patient_sex' => 'Male',
+                'billing_date' => now(),
+                'collection_date' => now(),
+                'report_date' => now(),
+                'sent_at' => now(),
+            ]),
+            $otherUser
+        ));
+
+        /** @var DatabaseNotification $notification */
+        $notification = $owner->notifications()->latest()->firstOrFail();
+        $this->assertNull($notification->read_at);
+
+        $this->actingAs($owner)
+            ->post(route('notifications.read', $notification->id))
+            ->assertRedirect();
+
+        $this->assertNotNull($notification->fresh()->read_at);
+
+        $this->actingAs($otherUser)
+            ->post(route('notifications.read', $notification->id))
+            ->assertNotFound();
     }
 }

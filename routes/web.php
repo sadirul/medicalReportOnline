@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClinicConnectionController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RazorpayWebhookController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportPdfController;
@@ -169,6 +170,10 @@ Route::middleware(['auth', 'subscription.active'])->group(function () {
     Route::post('reports/{report}/send-whatsapp', [ReportController::class, 'sendWhatsApp'])->name('reports.send-whatsapp');
     Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::get('reports/{report}/bill', [ReportPdfController::class, 'bill'])->name('reports.bill');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 require __DIR__.'/settings.php';

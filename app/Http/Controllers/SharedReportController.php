@@ -7,6 +7,8 @@ use App\Models\Department;
 use App\Models\Investigation;
 use App\Models\SharedReport;
 use App\Models\User;
+use App\Notifications\IncomingSharedReportNotification;
+use App\Notifications\SharedReportPublishedNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -128,6 +130,11 @@ class SharedReportController extends Controller
                 'amount' => (float) ($allowedInvestigations[$investigationId] ?? 0),
                 'display_order' => $index,
             ]);
+        }
+
+        $receiver = User::query()->find($receiverId);
+        if ($receiver !== null) {
+            $receiver->notify(new IncomingSharedReportNotification($report, $sender));
         }
 
         return to_route('clinics.requested.index')->with([
@@ -411,6 +418,11 @@ class SharedReportController extends Controller
             'received_at' => $sharedReport->received_at ?? now(),
             'published_at' => now(),
         ]);
+
+        $sender = User::query()->find((int) $sharedReport->sender_user_id);
+        if ($sender !== null) {
+            $sender->notify(new SharedReportPublishedNotification($sharedReport, $request->user()));
+        }
 
         return back()->with([
             'status' => 'Client report published successfully.',

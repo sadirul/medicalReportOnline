@@ -31,6 +31,22 @@ export interface SharedData {
         status_type?: 'success' | 'error' | string;
         otp_sent?: boolean;
     };
+    notifications: {
+        unread_count: number;
+        items: {
+            id: string;
+            type: string;
+            title: string;
+            message: string;
+            target_url: string;
+            icon_type: 'report' | 'avatar';
+            actor_name: string;
+            actor_logo: string;
+            actor_initials: string;
+            read_at: string | null;
+            created_at: string | null;
+        }[];
+    };
     [key: string]: unknown;
 }
 

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -50,6 +51,41 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'notifications' => $request->user()
+                ? [
+                    'unread_count' => $request->user()->unreadNotifications()->count(),
+                    'items' => $request->user()
+                        ->notifications()
+                        ->latest()
+                        ->limit(10)
+                        ->get()
+                        ->map(fn (DatabaseNotification $notification): array => [
+                            'id' => $notification->id,
+                            'type' => (string) data_get($notification->data, 'type', ''),
+                            'title' => (string) data_get($notification->data, 'title', ''),
+                            'message' => (string) data_get($notification->data, 'message', ''),
+                            'target_url' => (string) data_get($notification->data, 'target_url', route('dashboard')),
+                            'icon_type' => in_array((string) data_get($notification->data, 'type', ''), ['incoming_shared_report', 'shared_report_published'], true)
+                                ? 'report'
+                                : 'avatar',
+                            'actor_name' => (string) (data_get($notification->data, 'sender_clinic_name')
+                                ?? data_get($notification->data, 'receiver_clinic_name')
+                                ?? ''),
+                            'actor_logo' => (string) (data_get($notification->data, 'sender_logo')
+                                ?? data_get($notification->data, 'receiver_logo')
+                                ?? ''),
+                            'actor_initials' => (string) (data_get($notification->data, 'sender_initials')
+                                ?? data_get($notification->data, 'receiver_initials')
+                                ?? ''),
+                            'read_at' => $notification->read_at?->toIso8601String(),
+                            'created_at' => $notification->created_at?->toIso8601String(),
+                        ])
+                        ->values(),
+                ]
+                : [
+                    'unread_count' => 0,
+                    'items' => [],
+                ],
         ]);
     }
 }

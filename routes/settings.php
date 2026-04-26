@@ -14,6 +14,7 @@ Route::middleware(['auth', 'subscription.active'])->group(function () {
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
+    Route::post('settings/password/logout-other-devices', [PasswordController::class, 'destroyOtherSessions'])->name('password.logout-other-devices');
 
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');

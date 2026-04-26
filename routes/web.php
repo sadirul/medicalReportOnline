@@ -65,6 +65,7 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
         Route::get('transactions', [SuperadminClinicController::class, 'transactions'])->name('transactions.index');
         Route::get('settings/password', [SuperadminPasswordController::class, 'edit'])->name('password.edit');
         Route::put('settings/password', [SuperadminPasswordController::class, 'update'])->name('password.update');
+        Route::post('settings/password/logout-other-devices', [SuperadminPasswordController::class, 'destroyOtherSessions'])->name('password.logout-other-devices');
         Route::get('clinics', [SuperadminClinicController::class, 'index'])->name('clinics.index');
         Route::get('clinics/{user}', [SuperadminClinicController::class, 'show'])->name('clinics.show');
         Route::post('clinics/{user}/sms/add', [SuperadminClinicController::class, 'addSms'])->name('clinics.sms.add');

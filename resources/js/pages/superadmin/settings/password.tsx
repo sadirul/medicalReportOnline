@@ -12,6 +12,9 @@ export default function SuperadminPasswordSettings() {
         password: '',
         password_confirmation: '',
     });
+    const otherSessionsForm = useForm({
+        current_password: '',
+    });
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -19,6 +22,15 @@ export default function SuperadminPasswordSettings() {
         form.put(route('superadmin.password.update'), {
             preserveScroll: true,
             onSuccess: () => form.reset(),
+        });
+    };
+
+    const logoutOtherDevices = (event: FormEvent) => {
+        event.preventDefault();
+
+        otherSessionsForm.post(route('superadmin.password.logout-other-devices'), {
+            preserveScroll: true,
+            onSuccess: () => otherSessionsForm.reset(),
         });
     };
 
@@ -68,6 +80,25 @@ export default function SuperadminPasswordSettings() {
 
                     <Button type="submit" size="sm" disabled={form.processing}>
                         Save Password
+                    </Button>
+                </form>
+
+                <form onSubmit={logoutOtherDevices} className="space-y-3 rounded-lg border bg-white p-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-800">Log out from other devices</h3>
+                    <p className="text-xs text-slate-500">Enter current password to end active sessions on other devices.</p>
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="other_sessions_current_password">Current Password</Label>
+                        <Input
+                            id="other_sessions_current_password"
+                            type="password"
+                            value={otherSessionsForm.data.current_password}
+                            onChange={(event) => otherSessionsForm.setData('current_password', event.target.value)}
+                            required
+                        />
+                        <InputError message={otherSessionsForm.errors.current_password} />
+                    </div>
+                    <Button type="submit" variant="outline" size="sm" disabled={otherSessionsForm.processing}>
+                        Log out other devices
                     </Button>
                 </form>
             </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -34,10 +35,26 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
+        Auth::logoutOtherDevices($validated['current_password']);
+
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
 
         return back();
+    }
+
+    /**
+     * Log out this user from all other browser sessions.
+     */
+    public function destroyOtherSessions(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+        ]);
+
+        Auth::logoutOtherDevices($validated['current_password']);
+
+        return back()->with('status', 'Logged out from other devices.');
     }
 }

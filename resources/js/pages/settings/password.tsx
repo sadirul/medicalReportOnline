@@ -28,6 +28,9 @@ export default function Password() {
         password: '',
         password_confirmation: '',
     });
+    const otherSessionsForm = useForm({
+        current_password: '',
+    });
 
     const updatePassword: FormEventHandler = (e) => {
         e.preventDefault();
@@ -46,6 +49,15 @@ export default function Password() {
                     currentPasswordInput.current?.focus();
                 }
             },
+        });
+    };
+
+    const logoutOtherDevices: FormEventHandler = (e) => {
+        e.preventDefault();
+
+        otherSessionsForm.post(route('password.logout-other-devices'), {
+            preserveScroll: true,
+            onSuccess: () => otherSessionsForm.reset(),
         });
     };
 
@@ -131,6 +143,30 @@ export default function Password() {
                                 <p className="text-sm text-neutral-600">Saved</p>
                             </Transition>
                         </div>
+                    </form>
+
+                    <form onSubmit={logoutOtherDevices} className="space-y-4 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div>
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Log out from other devices</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Enter your current password to end sessions on other browsers and devices.</p>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="other_sessions_current_password">Current password</Label>
+                            <Input
+                                id="other_sessions_current_password"
+                                type="password"
+                                value={otherSessionsForm.data.current_password}
+                                onChange={(e) => otherSessionsForm.setData('current_password', e.target.value)}
+                                autoComplete="current-password"
+                                placeholder="Current password"
+                            />
+                            <InputError message={otherSessionsForm.errors.current_password} />
+                        </div>
+
+                        <Button type="submit" variant="outline" disabled={otherSessionsForm.processing}>
+                            Log out other devices
+                        </Button>
                     </form>
                 </div>
             </SettingsLayout>

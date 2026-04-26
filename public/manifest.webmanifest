@@ -1,6 +1,6 @@
 {
-  "name": "My Medi Lab",
-  "short_name": "Diagnocare",
+  "name": "LaboraCare",
+  "short_name": "LaboraCare",
   "description": "Manage diagnostics with clarity and speed.",
   "start_url": "/login",
   "scope": "/",

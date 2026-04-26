@@ -47,18 +47,7 @@ export default function SuperadminLogin({ status }: { status?: string }) {
         });
     };
 
-    const handleInstallClick = async () => {
-        if (!deferredPrompt) {
-            window.alert('Install option is available in browser menu: choose "Install app" or "Add to Home Screen".');
-            return;
-        }
 
-        setIsInstalling(true);
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        setDeferredPrompt(null);
-        setIsInstalling(false);
-    };
 
     return (
         <>
@@ -73,13 +62,6 @@ export default function SuperadminLogin({ status }: { status?: string }) {
                     </div>
 
                     {status && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{status}</div>}
-
-                    {!isStandalone && (
-                        <Button type="button" variant="outline" onClick={handleInstallClick} disabled={isInstalling} className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
-                            {isInstalling ? 'Installing...' : 'Install App'}
-                        </Button>
-                    )}
-
                     <form className="space-y-4" onSubmit={submit}>
                         <div className="grid gap-2">
                             <Label htmlFor="login_id">Login ID</Label>

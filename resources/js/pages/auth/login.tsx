@@ -81,7 +81,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
     const handleInstallClick = async () => {
         if (!deferredPrompt) {
-            window.alert('Install option is available in browser menu: choose "Install app" or "Add to Home Screen".');
+            window.alert('The install option is available in your browser menu. Choose "Install app" or "Add to Home Screen".');
             return;
         }
 
@@ -119,12 +119,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             <h2 className="text-3xl font-bold text-slate-900">Log in to your account</h2>
                             <p className="text-sm text-slate-600">Enter your mobile number and password below to continue.</p>
                         </div>
-
-                        {!isStandalone && (
-                            <Button type="button" variant="outline" className="h-11 w-full border-blue-200 text-blue-700 hover:bg-blue-50" onClick={handleInstallClick} disabled={isInstalling}>
-                                {isInstalling ? 'Installing...' : 'Install App'}
-                            </Button>
-                        )}
 
                         <form className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60" onSubmit={submit}>
                             {status && (

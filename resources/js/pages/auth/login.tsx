@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BeforeInstallPromptEvent, clearPwaInstallPrompt, subscribeToPwaInstallPrompt } from '@/lib/pwa-install';
 
 interface LoginForm {
     mobile: string;
@@ -21,11 +22,6 @@ interface LoginForm {
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
-}
-
-interface BeforeInstallPromptEvent extends Event {
-    prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
 const loginSchema = yup.object({
@@ -48,21 +44,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
         setIsStandalone(standaloneMode);
 
-        const handleBeforeInstallPrompt = (event: Event) => {
-            event.preventDefault();
-            setDeferredPrompt(event as BeforeInstallPromptEvent);
-        };
-
         const handleAppInstalled = () => {
-            setDeferredPrompt(null);
+            clearPwaInstallPrompt();
             setIsStandalone(true);
         };
 
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        const unsubscribe = subscribeToPwaInstallPrompt(setDeferredPrompt);
         window.addEventListener('appinstalled', handleAppInstalled);
 
         return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            unsubscribe();
             window.removeEventListener('appinstalled', handleAppInstalled);
         };
     }, []);
@@ -99,7 +90,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         try {
             await deferredPrompt.prompt();
             await deferredPrompt.userChoice;
-            setDeferredPrompt(null);
+            clearPwaInstallPrompt();
         } finally {
             setIsInstalling(false);
         }

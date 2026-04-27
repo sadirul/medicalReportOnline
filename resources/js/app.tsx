@@ -6,12 +6,21 @@ import { Toaster } from 'react-hot-toast';
 import { createRoot } from 'react-dom/client';
 import { route as routeFn } from 'ziggy-js';
 import { initializeTheme } from './hooks/use-appearance';
+import { registerPwaInstallPromptHandlers } from './lib/pwa-install';
 
 declare global {
     const route: typeof routeFn;
 }
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+registerPwaInstallPromptHandlers();
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+        console.error('Service worker registration failed:', error);
+    });
+}
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -38,9 +47,3 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch((error) => {
-        console.error('Service worker registration failed:', error);
-    });
-}

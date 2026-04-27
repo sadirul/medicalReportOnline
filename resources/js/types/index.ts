@@ -24,6 +24,7 @@ export interface NavItem {
 
 export interface SharedData {
     name: string;
+    support_contact?: string | null;
     quote: { message: string; author: string };
     auth: Auth;
     flash: {

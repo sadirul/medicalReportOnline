@@ -15,6 +15,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'support_contact' => env('SUPPORT_CONTACT'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

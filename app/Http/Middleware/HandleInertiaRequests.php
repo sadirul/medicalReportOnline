@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             ...parent::share($request),
             'name' => config('app.name'),
+            'support_contact' => config('app.support_contact'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'flash' => [
                 'status' => $request->session()->get('status'),

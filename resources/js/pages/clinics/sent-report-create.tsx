@@ -59,7 +59,6 @@ export default function SentReportCreate({ connectedClinics, doctors }: { connec
     const [investigations, setInvestigations] = useState<Investigation[]>([]);
     const [loadingCatalog, setLoadingCatalog] = useState(false);
     const [testSearch, setTestSearch] = useState('');
-    const [testPickerOpen, setTestPickerOpen] = useState(false);
     const [activeTestIndex, setActiveTestIndex] = useState(0);
     const { data, setData, post, transform, errors, processing } = useForm({
         receiver_user_id: '',
@@ -88,7 +87,7 @@ export default function SentReportCreate({ connectedClinics, doctors }: { connec
 
         return investigations.filter((investigation) => {
             const haystack = investigation.name.toLowerCase();
-            return query === '' || haystack.includes(query);
+            return query !== '' && haystack.includes(query);
         });
     }, [investigations, testSearch]);
     const selectableInvestigations = useMemo(
@@ -102,7 +101,6 @@ export default function SentReportCreate({ connectedClinics, doctors }: { connec
         setData('department_rows', []);
         setInvestigations([]);
         setTestSearch('');
-        setTestPickerOpen(false);
         setActiveTestIndex(0);
 
         if (!receiverUserId) {
@@ -163,7 +161,6 @@ export default function SentReportCreate({ connectedClinics, doctors }: { connec
             },
         ]);
         setTestSearch('');
-        setTestPickerOpen(false);
         setActiveTestIndex(0);
     };
 
@@ -340,73 +337,62 @@ export default function SentReportCreate({ connectedClinics, doctors }: { connec
                             Add test
                         </h3>
                         <div className="grid gap-1">
-                            <Label htmlFor="sent_test_picker_search" className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                            {/* <Label htmlFor="sent_test_picker_search" className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
                                 <Search className="h-4 w-4" />
                                 Choose test
-                            </Label>
+                            </Label> */}
                             <div className="relative">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setTestPickerOpen((open) => !open);
-                                        setActiveTestIndex(0);
-                                    }}
-                                    disabled={!data.receiver_user_id || loadingCatalog}
-                                    className="flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 text-left text-sm text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                                >
-                                    <span>{loadingCatalog ? 'Loading tests...' : 'Select test to add'}</span>
-                                    <ChevronDown className="h-4 w-4 text-slate-400" />
-                                </button>
-                                {testPickerOpen && (
-                                    <div className="absolute z-20 mt-1 w-full rounded-md border bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                                        <div className="relative">
-                                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                            <Input
-                                                id="sent_test_picker_search"
-                                                autoFocus
-                                                value={testSearch}
-                                                onChange={(event) => {
-                                                    setTestSearch(event.target.value);
-                                                    setActiveTestIndex(0);
-                                                }}
-                                                onKeyDown={handleTestPickerKeyDown}
-                                                placeholder="Search test"
-                                                className="pl-9"
-                                            />
-                                        </div>
-                                        <div className="mt-2 max-h-64 overflow-y-auto">
-                                            {filteredInvestigations.length === 0 && (
-                                                <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No tests found.</div>
-                                            )}
-                                            {filteredInvestigations.map((investigation) => {
-                                                const investigationId = String(investigation.id);
-                                                const isAdded = selectedInvestigationIds.has(investigationId);
-                                                const selectableIndex = selectableInvestigations.findIndex((item) => item.id === investigation.id);
-                                                const isActive = selectableIndex === activeTestIndex && !isAdded;
-
-                                                return (
-                                                    <button
-                                                        key={investigation.id}
-                                                        type="button"
-                                                        onClick={() => addInvestigationRow(investigationId)}
-                                                        onMouseEnter={() => {
-                                                            if (selectableIndex >= 0) {
-                                                                setActiveTestIndex(selectableIndex);
-                                                            }
-                                                        }}
-                                                        disabled={isAdded}
-                                                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent ${
-                                                            isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-950/40'
-                                                        }`}
-                                                    >
-                                                        <span className="truncate">{investigation.name}</span>
-                                                        {isAdded && <span className="ml-2 shrink-0 text-xs">Added</span>}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                <div className="">
+                                    <div className="relative">
+                                        <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                        <Input
+                                            id="sent_test_picker_search"
+                                            autoFocus
+                                            value={testSearch}
+                                            onChange={(event) => {
+                                                setTestSearch(event.target.value);
+                                                setActiveTestIndex(0);
+                                            }}
+                                            onKeyDown={handleTestPickerKeyDown}
+                                            placeholder="Search test"
+                                            className="pl-9"
+                                            disabled={!data.receiver_user_id || loadingCatalog}
+                                        />
                                     </div>
-                                )}
+                                    <div className="mt-2 max-h-64 overflow-y-auto">
+                                        {/* {filteredInvestigations.length === 0 && (
+                                            <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+                                                {loadingCatalog ? 'Loading tests...' : testSearch.trim() === '' ? 'Start typing to search for tests...' : 'No tests found.'}
+                                            </div>
+                                        )} */}
+                                        {filteredInvestigations.map((investigation) => {
+                                            const investigationId = String(investigation.id);
+                                            const isAdded = selectedInvestigationIds.has(investigationId);
+                                            const selectableIndex = selectableInvestigations.findIndex((item) => item.id === investigation.id);
+                                            const isActive = selectableIndex === activeTestIndex && !isAdded;
+
+                                            return (
+                                                <button
+                                                    key={investigation.id}
+                                                    type="button"
+                                                    onClick={() => addInvestigationRow(investigationId)}
+                                                    onMouseEnter={() => {
+                                                        if (selectableIndex >= 0) {
+                                                            setActiveTestIndex(selectableIndex);
+                                                        }
+                                                    }}
+                                                    disabled={isAdded}
+                                                    className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent ${
+                                                        isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-950/40'
+                                                    }`}
+                                                >
+                                                    <span className="truncate">{investigation.name}</span>
+                                                    {isAdded && <span className="ml-2 shrink-0 text-xs">Added</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -59,7 +59,7 @@
 
         .patient-meta {
             width: 100%;
-            margin: 10px 0 12px;
+            margin: 10px 0 25px;
             font-size: 12px;
             line-height: 1.25;
         }
@@ -203,15 +203,17 @@
             <span class="meta-colon">:</span>
             <span class="investigation">{{ $report->patient_age }} Y / {{ ucfirst(strtolower($report->patient_sex ?: '-')) }}</span>
         </div>
+        @if($report->patient_address)
         <div class="meta-row">
             <span class="meta-label">Address</span>
             <span class="meta-colon">:</span>
-            <span class="investigation">{{ strtoupper($report->patient_address ?: '-') }}</span>
+            <span class="investigation">{{ strtoupper($report->patient_address) }}</span>
         </div>
+        @endif
         <div class="meta-row">
-            <span class="meta-label">Referred By</span>
+            <span class="meta-label">Referred By Dr.</span>
             <span class="meta-colon">:</span>
-            <span class="investigation">{{ strtoupper($report->patient_referred_by ?: '-') }}</span>
+            <span class="investigation">{{ strtoupper(explode(',', $report->patient_referred_by)[0] ?? '-') }}</span>
         </div>
     </div>
     <div class="meta-col right">
@@ -274,7 +276,7 @@
             <div class="note-line"><strong>Equipment note ::</strong> {{ $report->equipment_note }}</div>
         @endif
         @if($report->interpretation_note)
-            <div class="note-line"><strong>Comments :</strong> {{ $report->interpretation_note }}</div>
+            <div class="note-line"><strong>Comments :</strong> <strong>{{ $report->interpretation_note }}</strong></div>
         @endif
     </div>
 @endif

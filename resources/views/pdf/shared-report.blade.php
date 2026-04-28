@@ -23,6 +23,7 @@
         .meta-label { display: inline-block; width: 130px; font-weight: 700; }
         .meta-colon { display: inline-block; width: 14px; text-align: center; font-weight: 700; }
         .meta-value { font-weight: 700; }
+        .patient-meta { margin-bottom: 25px; }
     </style>
 </head>
 <body>
@@ -45,8 +46,10 @@
 <div class="patient-meta">
     <div class="meta-row"><span class="meta-label">Patient Name</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_name ?: '-') }}</span></div>
     <div class="meta-row"><span class="meta-label">Age/Gender</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->patient_age }} Y / {{ ucfirst(strtolower($sharedReport->patient_sex ?: '-')) }}</span></div>
-    <div class="meta-row"><span class="meta-label">Address</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_address ?: '-') }}</span></div>
-    <div class="meta-row"><span class="meta-label">Referred By</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_referred_by ?: '-') }}</span></div>
+    @if($sharedReport->patient_address)
+    <div class="meta-row"><span class="meta-label">Address</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper($sharedReport->patient_address) }}</span></div>
+    @endif
+    <div class="meta-row"><span class="meta-label">Referred By Dr.</span><span class="meta-colon">:</span><span class="investigation">{{ strtoupper(explode(',', $sharedReport->patient_referred_by)[0] ?? '-') }}</span></div>
     <div class="meta-row"><span class="meta-label">Billing Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->billing_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
     <div class="meta-row"><span class="meta-label">Collection Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->collection_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>
     <div class="meta-row"><span class="meta-label">Report Date</span><span class="meta-colon">:</span><span class="investigation">{{ $sharedReport->report_date->timezone('Asia/Kolkata')->format('d/M/Y h:i A') }}</span></div>

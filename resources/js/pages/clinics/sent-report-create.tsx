@@ -1,23 +1,19 @@
 import InputError from '@/components/input-error';
+import { DoctorCombobox, type DoctorOption } from '@/components/doctor-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler, useMemo, useState } from 'react';
-import { Building2, FlaskConical, PlusCircle, Trash2 } from 'lucide-react';
+import { FormEventHandler, KeyboardEvent, useMemo, useState } from 'react';
+import { ChevronDown, FlaskConical, Search, Trash2 } from 'lucide-react';
 
 type ConnectedClinic = {
     id: number;
     clinic_name: string;
     full_name: string;
     unique_clinic_id: string;
-};
-
-type Department = {
-    id: number;
-    name: string;
 };
 
 type Investigation = {
@@ -49,11 +45,6 @@ const blankInvestigationRow = (): InvestigationRow => ({
     bio_ref_interval: '',
 });
 
-const blankDepartmentRow = (): DepartmentRow => ({
-    department_id: '',
-    investigations: [blankInvestigationRow()],
-});
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Sent report', href: '/clinics/other-clinic/sent-report/create' },
 ];
@@ -64,10 +55,12 @@ const dateForInput = () => {
     return local.toISOString().slice(0, 16);
 };
 
-export default function SentReportCreate({ connectedClinics }: { connectedClinics: ConnectedClinic[] }) {
-    const [departments, setDepartments] = useState<Department[]>([]);
+export default function SentReportCreate({ connectedClinics, doctors }: { connectedClinics: ConnectedClinic[]; doctors: DoctorOption[] }) {
     const [investigations, setInvestigations] = useState<Investigation[]>([]);
     const [loadingCatalog, setLoadingCatalog] = useState(false);
+    const [testSearch, setTestSearch] = useState('');
+    const [testPickerOpen, setTestPickerOpen] = useState(false);
+    const [activeTestIndex, setActiveTestIndex] = useState(0);
     const { data, setData, post, transform, errors, processing } = useForm({
         receiver_user_id: '',
         patient_name: '',
@@ -82,16 +75,35 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
         sample_note: '',
         equipment_note: '',
         interpretation_note: '',
-        department_rows: [blankDepartmentRow()],
+        department_rows: [] as DepartmentRow[],
     });
 
     const reportErrors = errors as Record<string, string | undefined>;
+    const selectedInvestigationIds = useMemo(
+        () => new Set(data.department_rows.flatMap((row) => row.investigations.map((investigation) => investigation.investigation_id).filter(Boolean))),
+        [data.department_rows],
+    );
+    const filteredInvestigations = useMemo(() => {
+        const query = testSearch.trim().toLowerCase();
+
+        return investigations.filter((investigation) => {
+            const haystack = investigation.name.toLowerCase();
+            return query === '' || haystack.includes(query);
+        });
+    }, [investigations, testSearch]);
+    const selectableInvestigations = useMemo(
+        () => filteredInvestigations.filter((investigation) => !selectedInvestigationIds.has(String(investigation.id))),
+        [filteredInvestigations, selectedInvestigationIds],
+    );
+    const activeInvestigation = selectableInvestigations[Math.min(activeTestIndex, Math.max(selectableInvestigations.length - 1, 0))];
 
     const onReceiverClinicChange = async (receiverUserId: string) => {
         setData('receiver_user_id', receiverUserId);
-        setData('department_rows', [blankDepartmentRow()]);
-        setDepartments([]);
+        setData('department_rows', []);
         setInvestigations([]);
+        setTestSearch('');
+        setTestPickerOpen(false);
+        setActiveTestIndex(0);
 
         if (!receiverUserId) {
             return;
@@ -110,8 +122,7 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                 throw new Error('Unable to load clinic catalog.');
             }
 
-            const payload = (await response.json()) as { departments: Department[]; investigations: Investigation[] };
-            setDepartments(payload.departments);
+            const payload = (await response.json()) as { investigations: Investigation[] };
             setInvestigations(payload.investigations);
         } finally {
             setLoadingCatalog(false);
@@ -126,83 +137,66 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
         setData('department_rows', rows);
     };
 
-    const onDepartmentChange = (rowIndex: number, departmentId: string) => {
-        const isDepartmentUsedInAnotherRow = data.department_rows.some(
-            (row, index) => index !== rowIndex && row.department_id === departmentId && departmentId !== '',
-        );
-
-        if (isDepartmentUsedInAnotherRow) {
-            return;
-        }
-
-        const rows = [...data.department_rows];
-        rows[rowIndex] = {
-            ...rows[rowIndex],
-            department_id: departmentId,
-            investigations: rows[rowIndex].investigations.map(() => blankInvestigationRow()),
-        };
-        setData('department_rows', rows);
-    };
-
-    const onInvestigationChange = (rowIndex: number, investigationIndex: number, investigationId: string) => {
-        const isInvestigationUsedInAnotherRow = data.department_rows.some((row, currentRowIndex) =>
-            row.investigations.some(
-                (item, currentInvestigationIndex) =>
-                    !(currentRowIndex === rowIndex && currentInvestigationIndex === investigationIndex) &&
-                    item.investigation_id === investigationId &&
-                    investigationId !== '',
-            ),
-        );
-
-        if (isInvestigationUsedInAnotherRow) {
+    const addInvestigationRow = (investigationId: string) => {
+        if (!investigationId || selectedInvestigationIds.has(investigationId)) {
             return;
         }
 
         const selectedInvestigation = investigations.find((investigation) => String(investigation.id) === investigationId);
-        const rows = [...data.department_rows];
-        const investigationsForRow = [...rows[rowIndex].investigations];
+        if (!selectedInvestigation) {
+            return;
+        }
 
-        investigationsForRow[investigationIndex] = {
-            investigation_id: investigationId,
-            parameter_name: selectedInvestigation?.name ?? '',
-            method: '',
-            unit: selectedInvestigation?.unit ?? '',
-            bio_ref_interval: selectedInvestigation?.bio_ref_interval ?? '',
-        };
-
-        rows[rowIndex] = { ...rows[rowIndex], investigations: investigationsForRow };
-        setData('department_rows', rows);
+        setData('department_rows', [
+            ...data.department_rows,
+            {
+                department_id: String(selectedInvestigation.department_id),
+                investigations: [
+                    {
+                        investigation_id: investigationId,
+                        parameter_name: selectedInvestigation.name,
+                        method: '',
+                        unit: selectedInvestigation.unit ?? '',
+                        bio_ref_interval: selectedInvestigation.bio_ref_interval ?? '',
+                    },
+                ],
+            },
+        ]);
+        setTestSearch('');
+        setTestPickerOpen(false);
+        setActiveTestIndex(0);
     };
 
-    const addDepartmentRow = () => {
-        setData('department_rows', [...data.department_rows, blankDepartmentRow()]);
+    const removeTestRow = (rowIndex: number) => {
+        setData('department_rows', data.department_rows.filter((_, index) => index !== rowIndex));
     };
 
-    const removeDepartmentRow = (rowIndex: number) => {
-        if (data.department_rows.length === 1) return;
-        setData(
-            'department_rows',
-            data.department_rows.filter((_, index) => index !== rowIndex),
-        );
-    };
+    const handleTestPickerKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setActiveTestIndex((index) => (selectableInvestigations.length === 0 ? 0 : Math.min(index + 1, selectableInvestigations.length - 1)));
+            return;
+        }
 
-    const addInvestigationUnderDepartment = (rowIndex: number) => {
-        const rows = [...data.department_rows];
-        rows[rowIndex] = {
-            ...rows[rowIndex],
-            investigations: [...rows[rowIndex].investigations, blankInvestigationRow()],
-        };
-        setData('department_rows', rows);
-    };
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setActiveTestIndex((index) => Math.max(index - 1, 0));
+            return;
+        }
 
-    const removeInvestigationRow = (rowIndex: number, investigationIndex: number) => {
-        const rows = [...data.department_rows];
-        if (rows[rowIndex].investigations.length === 1) return;
-        rows[rowIndex] = {
-            ...rows[rowIndex],
-            investigations: rows[rowIndex].investigations.filter((_, index) => index !== investigationIndex),
-        };
-        setData('department_rows', rows);
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (activeInvestigation) {
+                addInvestigationRow(String(activeInvestigation.id));
+            }
+            return;
+        }
+
+        if (event.key === 'Delete') {
+            event.preventDefault();
+            setTestSearch('');
+            setActiveTestIndex(0);
+        }
     };
 
     const submit: FormEventHandler = (event) => {
@@ -303,8 +297,8 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                         <InputError message={errors.patient_address} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="patient_referred_by">Referred By</Label>
-                        <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} />
+                        <Label htmlFor="patient_referred_by">Referred By Dr</Label>
+                        <DoctorCombobox doctors={doctors} value={data.patient_referred_by} onChange={(value) => setData('patient_referred_by', value)} />
                         <InputError message={errors.patient_referred_by} />
                     </div>
                     <div className="grid gap-2">
@@ -340,122 +334,123 @@ export default function SentReportCreate({ connectedClinics }: { connectedClinic
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-900/60 dark:bg-blue-950/25">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
-                            <Building2 className="h-4 w-4" />
-                            Departments with tests
+                            <FlaskConical className="h-4 w-4" />
+                            Add test
                         </h3>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={addDepartmentRow}
-                            disabled={!data.receiver_user_id || loadingCatalog}
-                            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40"
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add department row
-                        </Button>
-                    </div>
-                    {data.department_rows.map((row, rowIndex) => (
-                        <div key={rowIndex} className="space-y-3 rounded-lg border-l-4 border-l-blue-500 bg-blue-50/60 p-3 dark:border-l-blue-400 dark:bg-blue-950/25">
-                            <div className="flex items-end gap-2">
-                                <div className="grid flex-1 gap-1">
-                                    <Label className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
-                                        <Building2 className="h-4 w-4" />
-                                        Department row
-                                    </Label>
-                                    <select
-                                        value={row.department_id}
-                                        onChange={(e) => onDepartmentChange(rowIndex, e.target.value)}
-                                        disabled={!data.receiver_user_id || loadingCatalog}
-                                        className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
-                                    >
-                                        <option value="">Select department</option>
-                                        {departments.map((department) => (
-                                            <option
-                                                key={department.id}
-                                                value={department.id}
-                                                disabled={data.department_rows.some(
-                                                    (otherRow, index) => index !== rowIndex && otherRow.department_id === String(department.id),
-                                                )}
-                                            >
-                                                {department.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <Button type="button" variant="outline" onClick={() => removeDepartmentRow(rowIndex)} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Remove department
-                                </Button>
+                        <div className="grid gap-1">
+                            <Label htmlFor="sent_test_picker_search" className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                                <Search className="h-4 w-4" />
+                                Choose test
+                            </Label>
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTestPickerOpen((open) => !open);
+                                        setActiveTestIndex(0);
+                                    }}
+                                    disabled={!data.receiver_user_id || loadingCatalog}
+                                    className="flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 text-left text-sm text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                                >
+                                    <span>{loadingCatalog ? 'Loading tests...' : 'Select test to add'}</span>
+                                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                                </button>
+                                {testPickerOpen && (
+                                    <div className="absolute z-20 mt-1 w-full rounded-md border bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                                        <div className="relative">
+                                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                            <Input
+                                                id="sent_test_picker_search"
+                                                autoFocus
+                                                value={testSearch}
+                                                onChange={(event) => {
+                                                    setTestSearch(event.target.value);
+                                                    setActiveTestIndex(0);
+                                                }}
+                                                onKeyDown={handleTestPickerKeyDown}
+                                                placeholder="Search test"
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                        <div className="mt-2 max-h-64 overflow-y-auto">
+                                            {filteredInvestigations.length === 0 && (
+                                                <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No tests found.</div>
+                                            )}
+                                            {filteredInvestigations.map((investigation) => {
+                                                const investigationId = String(investigation.id);
+                                                const isAdded = selectedInvestigationIds.has(investigationId);
+                                                const selectableIndex = selectableInvestigations.findIndex((item) => item.id === investigation.id);
+                                                const isActive = selectableIndex === activeTestIndex && !isAdded;
+
+                                                return (
+                                                    <button
+                                                        key={investigation.id}
+                                                        type="button"
+                                                        onClick={() => addInvestigationRow(investigationId)}
+                                                        onMouseEnter={() => {
+                                                            if (selectableIndex >= 0) {
+                                                                setActiveTestIndex(selectableIndex);
+                                                            }
+                                                        }}
+                                                        disabled={isAdded}
+                                                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent ${
+                                                            isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-950/40'
+                                                        }`}
+                                                    >
+                                                        <span className="truncate">{investigation.name}</span>
+                                                        {isAdded && <span className="ml-2 shrink-0 text-xs">Added</span>}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
+                        </div>
+                    </div>
 
-                            {row.investigations.map((investigationRow, investigationIndex) => (
-                                <div key={`${rowIndex}-${investigationIndex}`} className="grid gap-2 md:grid-cols-5">
-                                    <select
-                                        value={investigationRow.investigation_id}
-                                        onChange={(e) => onInvestigationChange(rowIndex, investigationIndex, e.target.value)}
-                                        disabled={!row.department_id}
-                                        className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900"
-                                    >
-                                        <option value="">{row.department_id ? 'Select test' : 'Select department first'}</option>
-                                        {investigations
-                                            .filter((investigation) => row.department_id && String(investigation.department_id) === row.department_id)
-                                            .map((investigation) => (
-                                                <option
-                                                    key={investigation.id}
-                                                    value={investigation.id}
-                                                    disabled={data.department_rows.some((otherRow, otherRowIndex) =>
-                                                        otherRow.investigations.some(
-                                                            (otherInvestigation, otherInvestigationIndex) =>
-                                                                !(otherRowIndex === rowIndex && otherInvestigationIndex === investigationIndex) &&
-                                                                otherInvestigation.investigation_id === String(investigation.id),
-                                                        ),
-                                                    )}
-                                                >
-                                                    {investigation.name}
-                                                </option>
-                                            ))}
-                                    </select>
-                                    <Input
-                                        placeholder="Test name"
-                                        value={investigationRow.parameter_name}
-                                        onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'parameter_name', e.target.value)}
-                                    />
-                                    <Input
-                                        placeholder="Unit"
-                                        value={investigationRow.unit}
-                                        onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'unit', e.target.value)}
-                                    />
-                                    <Input
-                                        placeholder="Interval"
-                                        value={investigationRow.bio_ref_interval}
-                                        onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'bio_ref_interval', e.target.value)}
-                                    />
-                                    <Button type="button" variant="outline" onClick={() => removeInvestigationRow(rowIndex, investigationIndex)} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Remove row
-                                    </Button>
-                                </div>
-                            ))}
+                    {data.department_rows.length === 0 && (
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">
+                            No tests added yet.
+                        </div>
+                    )}
 
-                            <div className="flex gap-2">
+                    {data.department_rows.map((row, rowIndex) => {
+                        const investigationRow = row.investigations[0] ?? blankInvestigationRow();
+
+                        return (
+                            <div key={rowIndex} className="grid gap-2 rounded-lg border bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:grid-cols-4">
+                                <Input
+                                    placeholder="Test name"
+                                    value={investigationRow.parameter_name}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'parameter_name', e.target.value)}
+                                />
+                                <Input
+                                    placeholder="Unit"
+                                    value={investigationRow.unit}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'unit', e.target.value)}
+                                />
+                                <Input
+                                    placeholder="Interval"
+                                    value={investigationRow.bio_ref_interval}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'bio_ref_interval', e.target.value)}
+                                />
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => addInvestigationUnderDepartment(rowIndex)}
-                                    disabled={!row.department_id}
-                                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                                    onClick={() => removeTestRow(rowIndex)}
+                                    className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40"
                                 >
-                                    <FlaskConical className="mr-2 h-4 w-4" />
-                                    Add test row
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Remove
                                 </Button>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                     <InputError message={reportErrors.items || reportErrors['items.0.department_id'] || reportErrors['items.0.investigation_id']} />
                 </div>
-
                 <div className="grid gap-3 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="sample_note">Sample note</Label>

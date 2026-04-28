@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { Building2, FlaskConical, PlusCircle, Trash2 } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
 
 type Investigation = {
     id: number;
@@ -73,14 +73,8 @@ const blankInvestigationRow = (): InvestigationRow => ({
     bio_ref_interval: '',
 });
 
-const blankDepartmentRow = (): DepartmentRow => ({
-    department_id: '',
-    investigations: [blankInvestigationRow()],
-});
-
 export default function ClientReportEdit({
     report,
-    departments,
     investigations,
 }: {
     report: EditableSharedReport;
@@ -96,32 +90,30 @@ export default function ClientReportEdit({
 
     const departmentRowsFromReport = (reportData: EditableSharedReport): DepartmentRow[] => {
         if (!reportData.items || reportData.items.length === 0) {
-            return [blankDepartmentRow()];
+            return [];
         }
 
-        const rowsByDepartment = new Map<string, InvestigationRow[]>();
-        reportData.items.forEach((item) => {
+        return reportData.items.map((item) => {
             const departmentId = item.department_id
                 ? String(item.department_id)
                 : item.investigation?.department?.id
                   ? String(item.investigation.department.id)
                   : '';
-            const existing = rowsByDepartment.get(departmentId) ?? [];
-            existing.push({
-                investigation_id: item.investigation_id ? String(item.investigation_id) : '',
-                parameter_name: item.parameter_name ?? '',
-                method: item.method ?? '',
-                value: item.value ?? '',
-                unit: item.unit ?? '',
-                bio_ref_interval: item.bio_ref_interval ?? '',
-            });
-            rowsByDepartment.set(departmentId, existing);
-        });
 
-        return Array.from(rowsByDepartment.entries()).map(([department_id, rows]) => ({
-            department_id,
-            investigations: rows.length > 0 ? rows : [blankInvestigationRow()],
-        }));
+            return {
+                department_id: departmentId,
+                investigations: [
+                    {
+                        investigation_id: item.investigation_id ? String(item.investigation_id) : '',
+                        parameter_name: item.parameter_name ?? '',
+                        method: item.method ?? '',
+                        value: item.value ?? '',
+                        unit: item.unit ?? '',
+                        bio_ref_interval: item.bio_ref_interval ?? '',
+                    },
+                ],
+            };
+        });
     };
 
     const { data, setData, patch, transform, errors, processing } = useForm({
@@ -147,51 +139,6 @@ export default function ClientReportEdit({
         const investigationsForRow = [...rows[rowIndex].investigations];
         investigationsForRow[investigationIndex] = { ...investigationsForRow[investigationIndex], [key]: value };
         rows[rowIndex] = { ...rows[rowIndex], investigations: investigationsForRow };
-        setData('department_rows', rows);
-    };
-
-    const onDepartmentChange = (rowIndex: number, departmentId: string) => {
-        const rows = [...data.department_rows];
-        rows[rowIndex] = {
-            ...rows[rowIndex],
-            department_id: departmentId,
-            investigations: rows[rowIndex].investigations.map(() => blankInvestigationRow()),
-        };
-        setData('department_rows', rows);
-    };
-
-    const onInvestigationChange = (rowIndex: number, investigationIndex: number, investigationId: string) => {
-        const selectedInvestigation = investigations.find((investigation) => String(investigation.id) === investigationId);
-        const rows = [...data.department_rows];
-        const investigationsForRow = [...rows[rowIndex].investigations];
-
-        investigationsForRow[investigationIndex] = {
-            investigation_id: investigationId,
-            parameter_name: selectedInvestigation?.name ?? '',
-            method: '',
-            value: investigationsForRow[investigationIndex].value,
-            unit: selectedInvestigation?.unit ?? '',
-            bio_ref_interval: selectedInvestigation?.bio_ref_interval ?? '',
-        };
-
-        rows[rowIndex] = { ...rows[rowIndex], investigations: investigationsForRow };
-        setData('department_rows', rows);
-    };
-
-    const addDepartmentRow = () => setData('department_rows', [...data.department_rows, blankDepartmentRow()]);
-    const removeDepartmentRow = (rowIndex: number) => {
-        if (data.department_rows.length === 1) return;
-        setData('department_rows', data.department_rows.filter((_, index) => index !== rowIndex));
-    };
-    const addInvestigationUnderDepartment = (rowIndex: number) => {
-        const rows = [...data.department_rows];
-        rows[rowIndex] = { ...rows[rowIndex], investigations: [...rows[rowIndex].investigations, blankInvestigationRow()] };
-        setData('department_rows', rows);
-    };
-    const removeInvestigationRow = (rowIndex: number, investigationIndex: number) => {
-        const rows = [...data.department_rows];
-        if (rows[rowIndex].investigations.length === 1) return;
-        rows[rowIndex] = { ...rows[rowIndex], investigations: rows[rowIndex].investigations.filter((_, index) => index !== investigationIndex) };
         setData('department_rows', rows);
     };
 
@@ -288,7 +235,7 @@ export default function ClientReportEdit({
                         <Input id="patient_address" value={data.patient_address} onChange={(e) => setData('patient_address', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="patient_referred_by">Referred By</Label>
+                        <Label htmlFor="patient_referred_by">Referred By Dr</Label>
                         <Input id="patient_referred_by" value={data.patient_referred_by} onChange={(e) => setData('patient_referred_by', e.target.value)} disabled={lockNonResultFields} />
                     </div>
                     <div className="grid gap-2">
@@ -308,81 +255,61 @@ export default function ClientReportEdit({
                 <div className="grid gap-3 md:grid-cols-3">
                     <div className="grid gap-2">
                         <Label htmlFor="billing_date">Billing Date</Label>
-                        <Input id="billing_date" type="datetime-local" value={data.billing_date} onChange={(e) => setData('billing_date', e.target.value)} disabled={lockNonResultFields} />
+                        <Input id="billing_date" type="datetime-local" value={data.billing_date} onChange={(e) => setData('billing_date', e.target.value)} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="collection_date">Collection Date</Label>
-                        <Input id="collection_date" type="datetime-local" value={data.collection_date} onChange={(e) => setData('collection_date', e.target.value)} disabled={lockNonResultFields} />
+                        <Input id="collection_date" type="datetime-local" value={data.collection_date} onChange={(e) => setData('collection_date', e.target.value)} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="report_date">Report Date</Label>
-                        <Input id="report_date" type="datetime-local" value={data.report_date} onChange={(e) => setData('report_date', e.target.value)} disabled={lockNonResultFields} />
+                        <Input id="report_date" type="datetime-local" value={data.report_date} onChange={(e) => setData('report_date', e.target.value)} />
                     </div>
                 </div>
 
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
-                            <Building2 className="h-4 w-4" />
-                            Departments with tests
+                            <FlaskConical className="h-4 w-4" />
+                            Tests
                         </h3>
-                        <Button type="button" variant="outline" onClick={addDepartmentRow} disabled={lockNonResultFields} className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add department row
-                        </Button>
                     </div>
-                    {data.department_rows.map((row, rowIndex) => (
-                        <div key={rowIndex} className="space-y-3 rounded-lg border-l-4 border-l-blue-500 bg-blue-50/60 p-3 dark:border-l-blue-400 dark:bg-blue-950/25">
-                            <div className="flex items-end gap-2">
-                                <div className="grid flex-1 gap-1">
-                                    <Label className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
-                                        <Building2 className="h-4 w-4" />
-                                        Department row
-                                    </Label>
-                                    <select value={row.department_id} onChange={(e) => onDepartmentChange(rowIndex, e.target.value)} disabled={lockNonResultFields} className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900">
-                                        <option value="">Select department</option>
-                                        {departments.map((department) => (
-                                            <option key={department.id} value={department.id}>
-                                                {department.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <Button type="button" variant="outline" onClick={() => removeDepartmentRow(rowIndex)} disabled={lockNonResultFields} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Remove department
-                                </Button>
-                            </div>
-                            {row.investigations.map((investigationRow, investigationIndex) => (
-                                <div key={`${rowIndex}-${investigationIndex}`} className="grid gap-2 md:grid-cols-6">
-                                    <select value={investigationRow.investigation_id} onChange={(e) => onInvestigationChange(rowIndex, investigationIndex, e.target.value)} disabled={lockNonResultFields || !row.department_id} className="h-10 rounded-md border bg-white px-3 text-sm dark:bg-slate-900">
-                                        <option value="">{row.department_id ? 'Select test' : 'Select department first'}</option>
-                                        {investigations
-                                            .filter((investigation) => row.department_id && String(investigation.department_id) === row.department_id)
-                                            .map((investigation) => (
-                                                <option key={investigation.id} value={investigation.id}>
-                                                    {investigation.name}
-                                                </option>
-                                            ))}
-                                    </select>
-                                    <Input value={investigationRow.parameter_name} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'parameter_name', e.target.value)} placeholder="Test name" disabled={lockNonResultFields} />
-                                    <Input value={investigationRow.value} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'value', e.target.value)} placeholder="Result value" />
-                                    <Input value={investigationRow.unit} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'unit', e.target.value)} placeholder="Unit" disabled={lockNonResultFields} />
-                                    <Input value={investigationRow.bio_ref_interval} onChange={(e) => updateInvestigationRow(rowIndex, investigationIndex, 'bio_ref_interval', e.target.value)} placeholder="Interval" disabled={lockNonResultFields} />
-                                    <Button type="button" variant="outline" onClick={() => removeInvestigationRow(rowIndex, investigationIndex)} disabled={lockNonResultFields} className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/40">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Remove row
-                                    </Button>
-                                </div>
-                            ))}
-                            <div className="flex gap-2">
-                                <Button type="button" variant="outline" onClick={() => addInvestigationUnderDepartment(rowIndex)} disabled={lockNonResultFields || !row.department_id} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
-                                    <FlaskConical className="mr-2 h-4 w-4" />
-                                    Add test row
-                                </Button>
-                            </div>
+                    {data.department_rows.length === 0 && (
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">
+                            No tests found.
                         </div>
-                    ))}
+                    )}
+                    {data.department_rows.map((row, rowIndex) => {
+                        const investigationRow = row.investigations[0] ?? blankInvestigationRow();
+
+                        return (
+                            <div key={rowIndex} className="grid gap-2 rounded-lg border bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:grid-cols-4">
+                                <Input
+                                    value={investigationRow.parameter_name}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'parameter_name', e.target.value)}
+                                    placeholder="Test name"
+                                    disabled={lockNonResultFields}
+                                />
+                                <Input
+                                    value={investigationRow.value}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'value', e.target.value)}
+                                    placeholder="Result value"
+                                />
+                                <Input
+                                    value={investigationRow.unit}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'unit', e.target.value)}
+                                    placeholder="Unit"
+                                    disabled={lockNonResultFields}
+                                />
+                                <Input
+                                    value={investigationRow.bio_ref_interval}
+                                    onChange={(e) => updateInvestigationRow(rowIndex, 0, 'bio_ref_interval', e.target.value)}
+                                    placeholder="Interval"
+                                    disabled={lockNonResultFields}
+                                />
+                            </div>
+                        );
+                    })}
                     <InputError message={reportErrors.items || reportErrors['items.0.department_id'] || reportErrors['items.0.investigation_id']} />
                 </div>
 

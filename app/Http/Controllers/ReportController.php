@@ -97,6 +97,7 @@ class ReportController extends Controller
         return Inertia::render('reports/create-report', [
             'departments' => $departments,
             'investigations' => $investigations,
+            'doctors' => $request->user()->doctors()->orderBy('name')->get(['id', 'name', 'mobile', 'email', 'hospital']),
             'report' => null,
         ]);
     }
@@ -122,6 +123,7 @@ class ReportController extends Controller
         return Inertia::render('reports/create-report', [
             'departments' => $departments,
             'investigations' => $investigations,
+            'doctors' => $request->user()->doctors()->orderBy('name')->get(['id', 'name', 'mobile', 'email', 'hospital']),
             'report' => $report,
         ]);
     }

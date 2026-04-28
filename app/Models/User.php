@@ -136,6 +136,11 @@ class User extends Authenticatable
         return $this->hasMany(Department::class);
     }
 
+    public function doctors(): HasMany
+    {
+        return $this->hasMany(Doctor::class);
+    }
+
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);

@@ -37,6 +37,11 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+    {
+        title: 'My Doctors',
+        url: '/doctors',
+        icon: appNavIcons.doctors,
+    },
 ];
 
 const reportsNavItems: NavItem[] = [

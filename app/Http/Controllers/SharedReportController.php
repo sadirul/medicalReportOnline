@@ -26,6 +26,7 @@ class SharedReportController extends Controller
     {
         return Inertia::render('clinics/sent-report-create', [
             'connectedClinics' => $this->connectedClinics($request->user()),
+            'doctors' => $request->user()->doctors()->orderBy('name')->get(['id', 'name', 'mobile', 'email', 'hospital']),
         ]);
     }
 

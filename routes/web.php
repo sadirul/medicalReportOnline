@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClinicConnectionController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RazorpayWebhookController;
 use App\Http\Controllers\ReportController;
@@ -145,6 +146,10 @@ Route::middleware(['auth', 'subscription.active'])->group(function () {
     Route::get('departments/{department}', [DepartmentController::class, 'show'])->name('departments.show');
     Route::post('departments/{department}/investigations', [DepartmentController::class, 'storeInvestigation'])->name('investigations.store');
     Route::patch('investigations/{investigation}', [DepartmentController::class, 'updateInvestigation'])->name('investigations.update');
+
+    Route::get('doctors', [DoctorController::class, 'index'])->name('doctors.index');
+    Route::post('doctors', [DoctorController::class, 'store'])->name('doctors.store');
+    Route::patch('doctors/{doctor}', [DoctorController::class, 'update'])->name('doctors.update');
 
     Route::get('clinics/other-clinic', [ClinicConnectionController::class, 'index'])->name('clinics.other.index');
     Route::post('clinics/other-clinic/connect', [ClinicConnectionController::class, 'store'])->name('clinics.other.connect');
